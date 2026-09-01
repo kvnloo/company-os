@@ -13,6 +13,7 @@ It is a cockpit that **reads** live Hermes `host.state`. Hermes remains the runt
 
 - Hermes Desktop plugin (`plugin/plugin.js`) — full page at `/company-os`
 - Optional static `web/index.html` for the same look without Desktop (demo numbers only)
+- [docs/](docs/README.md) — inspo frames + architecture stills
 
 ## What it is not
 
