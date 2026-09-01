@@ -1,40 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <title>zer0 company os</title>
-  <style>
-    html,body{margin:0;background:#080808;color:#ececec;font-family:ui-sans-serif,system-ui,sans-serif;height:100%}
-    .wrap{padding:36px}
-    .brand{font-family:ui-monospace,monospace;font-size:28px;letter-spacing:.12em}
-    .muted{color:#8d8d8d;letter-spacing:.16em;font-size:12px;text-transform:lowercase}
-    .ok{color:#7dff9a;font-size:12px;margin-top:12px}
-    .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:48px}
-    .card{border:1px solid #1f1f1f;padding:16px;font-size:13px}
-    k{display:block;color:#8d8d8d;letter-spacing:.2em;font-size:10px;text-transform:uppercase;margin-bottom:8px}
-    .hub{text-align:center;padding:48px 0}
-    .ring{width:180px;height:180px;border:1px dashed #2a2a2a;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center}
-    .core{width:64px;height:64px;border-radius:50%;background:#f2f2f2}
-  </style>
+<meta charset="UTF-8"/>
+<title>zer0 company OS</title>
+<style>
+  html,body{margin:0;background:#080808;height:100%;overflow:hidden}
+  .art{width:1920px;height:1080px;position:relative;background:#0a0a0a;color:#e8e8e8;
+    font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em}
+  .br{position:absolute;width:10px;height:10px;border:1px solid #3a3a3a}
+  .tl{top:0;left:0;border-right:0;border-bottom:0}
+  .tr{top:0;right:0;border-left:0;border-bottom:0}
+  .bl{bottom:0;left:0;border-right:0;border-top:0}
+  .brr{bottom:0;right:0;border-left:0;border-top:0}
+  .logo{position:absolute;left:56px;top:40px}
+  .logo h1{font-family:ui-monospace,Menlo,monospace;font-size:34px;font-weight:400;letter-spacing:.1em;margin:0}
+  .logo .z0{display:inline-block;width:22px;height:28px;border:2px solid #ececec;border-radius:50%;vertical-align:-4px;margin-left:2px}
+  .logo .s{margin-top:8px;font-size:12px;letter-spacing:.28em;color:#8d8d8d;text-transform:lowercase}
+  .logo .c{margin-top:14px;display:flex;align-items:center;gap:8px;color:#7dff9a;font-size:12px}
+  .logo .c i{width:7px;height:7px;border-radius:50%;background:#7dff9a;display:block}
+  .clock{position:absolute;left:50%;top:36px;transform:translateX(-50%);text-align:center}
+  .clock .t{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.2em}
+  .clock .d{margin-top:6px;font-size:11px;letter-spacing:.18em;color:#8a8a8a;text-transform:lowercase}
+  .counts{position:absolute;right:56px;top:40px;text-align:right;font-size:13px;letter-spacing:.12em;color:#c8c8c8}
+  .counts b{font-weight:400;color:#8a8a8a;font-size:11px;display:block;margin-top:4px;text-transform:lowercase}
+  .panel{position:absolute;width:210px}
+  .panel .lab{font-size:11px;letter-spacing:.32em;color:#9a9a9a;margin-bottom:10px}
+  .p-voice{left:56px;top:168px;height:210px}
+  .p-mate{left:56px;top:400px;height:150px}
+  .p-hitl{left:56px;top:572px;height:150px}
+  .wave{height:88px;display:flex;align-items:flex-end;gap:3px;padding:8px 4px}
+  .wave span{width:4px;background:#d0d0d0;display:block}
+  .hub{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center}
+  .ring{width:230px;height:230px;border-radius:50%;border:1px dashed #2a2a2a;margin:0 auto;display:flex;align-items:center;justify-content:center}
+  .core{width:78px;height:78px;border-radius:50%;background:#f2f2f2}
+  .hubname{margin-top:14px;letter-spacing:.36em;font-size:13px}
+  .hubsub{margin-top:6px;font-size:11px;color:#777;letter-spacing:.16em}
+  .sat{position:absolute;font-size:10px;letter-spacing:.28em;color:#9a9a9a}
+  .sat-hitl{left:50%;top:210px;transform:translateX(-50%)}
+  .sat-mcp{left:430px;top:48%}
+  .sat-kanban{left:50%;top:730px;transform:translateX(-50%)}
+  .lanes{position:absolute;right:48px;top:210px;width:280px}
+  .lane{margin-bottom:28px;padding:8px 0}
+  .lane .k{font-size:11px;letter-spacing:.28em;color:#9a9a9a;margin-bottom:6px}
+  .lane .n{font-size:16px;letter-spacing:.12em}
+  .lane .m{font-size:11px;color:#666;margin-top:4px;letter-spacing:.08em}
+  .bottom{position:absolute;left:56px;right:56px;bottom:36px;display:grid;grid-template-columns:240px 1fr 280px;gap:24px;align-items:end}
+  .prompt{border:1px solid #2a2a2a;border-radius:32px;padding:14px 18px;display:flex;justify-content:space-between;color:#777}
+  .k{font-size:10px;letter-spacing:.28em;color:#9a9a9a;text-transform:uppercase;margin-bottom:8px}
+  .stat{display:flex;justify-content:space-between;font-size:12px;color:#888;margin:5px 0}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="brand">zer0</div>
-    <div class="muted">company os · demo without hermes</div>
-    <div class="ok">● open as a Hermes Desktop plugin to bind live state</div>
-    <div class="hub">
-      <div class="ring"><div class="core"></div></div>
-      <div style="letter-spacing:.28em;margin-top:12px;font-size:12px">LINEAR</div>
-      <div class="muted">company mind · hermes executes</div>
+<div class="art">
+  <div class="logo">
+    <h1>zer<span class="z0"></span></h1>
+    <div class="s">company os</div>
+    <div class="c"><i></i>architecture map</div>
+  </div>
+  <div class="clock"><div class="t" id="clk"></div><div class="d">draft · not live fleet stats</div></div>
+  <div class="counts">host.state only<b>no fake telemetry</b></div>
+
+  <div class="panel p-voice">
+    <div class="br tl"></div><div class="br tr"></div><div class="br bl"></div><div class="br brr"></div>
+    <div class="lab">VOICE</div>
+    <div class="wave" id="wave"></div>
+    <div class="s" style="margin-top:8px">intake gateway · never executable</div>
+  </div>
+  <div class="panel p-mate">
+    <div class="br tl"></div><div class="br tr"></div><div class="br bl"></div><div class="br brr"></div>
+    <div class="lab">FIRST MATE</div>
+    <div>chief of staff</div>
+    <div class="s" style="margin-top:8px">one Linear brief</div>
+  </div>
+  <div class="panel p-hitl">
+    <div class="br tl"></div><div class="br tr"></div><div class="br bl"></div><div class="br brr"></div>
+    <div class="lab">HITL</div>
+    <div>Kevin</div>
+    <div class="s" style="margin-top:8px">PER-n YES/NO · never 1–7</div>
+  </div>
+
+  <div class="sat sat-hitl">HITL</div>
+  <div class="sat sat-mcp">MCP · ask · run · see</div>
+  <div class="hub">
+    <div class="ring"><div class="core"></div></div>
+    <div class="hubname">LINEAR</div>
+    <div class="hubsub">company mind · human ledger</div>
+  </div>
+  <div class="sat sat-kanban">HERMES KANBAN · local execution</div>
+
+  <div class="lanes">
+    <div class="lane"><div class="k">PRODUCT</div><div class="n">third mate</div><div class="m">one owner per product</div></div>
+    <div class="lane"><div class="k">OSS LANE</div><div class="n">frontier harnesses</div><div class="m">omp · o8 · hermes · pi · codex</div></div>
+    <div class="lane"><div class="k">HOST</div><div class="n">second mate</div><div class="m">local Kanban on this machine</div></div>
+  </div>
+
+  <div class="bottom">
+    <div>
+      <div class="k">not this picture</div>
+      <div class="s">ENG/RESEARCH/OPS were UI chrome, not architecture</div>
     </div>
-    <div class="grid">
-      <div class="card"><k>voice</k>intake gateway only</div>
-      <div class="card"><k>first mate</k>chief of staff</div>
-      <div class="card"><k>second mate</k>host + local kanban</div>
-      <div class="card"><k>third mate</k>product owner</div>
-      <div class="card"><k>oss lane</k>omp · o8 · hermes · pi · codex</div>
-      <div class="card"><k>not this</k>no linear tokens · no secrets</div>
+    <div class="prompt"><span>ask your company anything…</span><span>↑</span></div>
+    <div>
+      <div class="k">system</div>
+      <div class="stat"><span>voice brief</span><span>Backlog→Todo</span></div>
+      <div class="stat"><span>factory HITL</span><span>Done to post</span></div>
+      <div class="stat"><span>kanban</span><span>execution ledger</span></div>
     </div>
   </div>
+</div>
+<script>
+  document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-GB',{hour12:false});
+  const w = document.getElementById('wave');
+  for (let i=0;i<28;i++) {
+    const s = document.createElement('span');
+    s.style.height = (8 + Math.abs(Math.sin(i/3))*48) + 'px';
+    w.appendChild(s);
+  }
+</script>
 </body>
 </html>

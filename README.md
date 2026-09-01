@@ -2,7 +2,12 @@
 
 Thin **Hermes** HUD. Not a company operating system, not a second Kanban, not Linear.
 
-It is a cockpit that **reads** live Hermes state and draws the Company OS map (voice → first mate → Linear/human mind as a label → local Kanban as Hermes execution). Hermes remains the runtime. You remain the approver.
+**Look:** Kevin's cockpit reference (dark HUD, left rail, ring hub, prompt).
+**Nodes:** the real Company OS map — Voice intake, First Mate, HITL, Linear (company mind), Hermes Kanban (local execution), Third Mate / product, OSS lane (frontier harnesses), Second Mate / host.
+
+ENG / RESEARCH / OPS and fake 6/32 · 99.2% telemetry are **not** architecture. They stay out.
+
+It is a cockpit that **reads** live Hermes `host.state`. Hermes remains the runtime. You remain the approver.
 
 ## What it is
 
