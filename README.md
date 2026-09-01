@@ -14,6 +14,7 @@ It is a cockpit that **reads** live Hermes `host.state`. Hermes remains the runt
 - Hermes Desktop plugin (`plugin/plugin.js`) — full page at `/company-os`
 - Optional static `web/index.html` for the same look without Desktop (demo numbers only)
 - [docs/](docs/README.md) — inspo frames + architecture stills
+- Blind theme jury (labels-hidden, sealed map): v1/v2 lose vs inspo; v3 win 8–5 and 8–6 on two independent critics. Theme freeze = void paper + rings + tracked type. Not “perfect”: left slabs still sparse.
 
 ## What it is not
 
