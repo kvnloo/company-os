@@ -53,7 +53,7 @@ Optional environment variables for unusual layouts:
 ```text
 Z0INT_HOME
 HERMES_HOME
-AGENTSVIEW_HOME
+AGENTSVIEW_DATA_DIR
 COMPANY_OS_AGENTSVIEW_DB
 COMPANY_OS_KERDOIOS_LEDGER
 COMPANY_OS_Z0_SNAPSHOT
@@ -75,3 +75,15 @@ alongside the active harness, provider/model, resource capacity, tokens/cost, me
 ## License
 
 MIT
+
+
+### AgentsView offload
+
+AgentsView officially supports `AGENTSVIEW_DATA_DIR`. If `~/.agentsview` is a symlink to a large offloaded corpus, do not move the corpus back to `$HOME`. Point AgentsView at the real directory instead:
+
+```bash
+export AGENTSVIEW_DATA_DIR=/mnt/zer0models/sft-svlm/data/agentsview
+agentsview daemon status
+```
+
+CompanyOS uses the same variable, so the memory panel and AgentsView itself agree on the effective data root.
