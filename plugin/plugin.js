@@ -97,6 +97,7 @@ function Hud({ctx}){
   const mem=s?.memory||{}
   const econ=s?.economics||{}
   const disks=s?.disks||{}
+  const security=s?.security||{}
   const status=err?'offline':(s?.status||'loading')
   const live=Boolean(busy||flow.length)
 
@@ -153,7 +154,9 @@ function Hud({ctx}){
         jsx(Panel,{title:'source health',children:jsxs('div',{children:[
           jsx('div',{className:'cos-sources',children:Object.entries(s?.sources||{}).map(([n,v])=>jsx('span',{className:'cos-source '+str(v?.status),title:v?.reason||'',children:n+':'+str(v?.status)},n))}),
           disks.home?jsx('div',{className:'cos-row',children:[jsx('span',{children:'home free'}),jsx('span',{className:'cos-val '+cls(disks.home.status),children:disks.home.free_pct+'%'})]}):null,
-          disks.mnt?jsx('div',{className:'cos-row',children:[jsx('span',{children:'/mnt free'}),jsx('span',{className:'cos-val '+cls(disks.mnt.status),children:disks.mnt.free_pct+'%'})]}):null
+          disks.mnt?jsx('div',{className:'cos-row',children:[jsx('span',{children:'/mnt free'}),jsx('span',{className:'cos-val '+cls(disks.mnt.status),children:disks.mnt.free_pct+'%'})]}):null,
+          jsx('div',{className:'cos-row',children:[jsx('span',{children:'env security'}),jsx('span',{className:'cos-val '+cls(security.status),children:security.status==='critical'?'critical ('+count(security.unsafe_count)+')':str(security.status||'unknown')})]}),
+          (security.unsafe_files||[]).slice(0,3).map((f,i)=>jsx('div',{className:'cos-muted cos-bad',children:short(f.file,26)+' mode '+str(f.mode)},'sec-'+i))
         ]})})
       ]})
     ]}),
