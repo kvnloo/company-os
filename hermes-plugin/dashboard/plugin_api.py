@@ -251,7 +251,8 @@ def _quota() -> tuple[list[dict[str, Any]], dict[str, Any]]:
 
 
 def _agentsview() -> tuple[dict[str, Any], dict[str, Any]]:
-    home = Path(os.environ.get("AGENTSVIEW_HOME", "~/.agentsview")).expanduser()
+    configured_root = os.environ.get("AGENTSVIEW_DATA_DIR")
+    home = Path(configured_root or "~/.agentsview").expanduser()
     configured = os.environ.get("COMPANY_OS_AGENTSVIEW_DB")
     db = Path(configured).expanduser() if configured else None
     if db is None and home.is_file() and home.suffix == ".db":
@@ -263,6 +264,8 @@ def _agentsview() -> tuple[dict[str, Any], dict[str, Any]]:
     home_symlink = home.is_symlink()
     state = {
         "cli": bool(shutil.which("agentsview")),
+        "data_dir": str(home),
+        "data_dir_source": "AGENTSVIEW_DATA_DIR" if configured_root else "default",
         "home_exists": home.exists(),
         "home_symlink": home_symlink,
         "symlink_target": str(home.resolve()) if home_symlink else None,
