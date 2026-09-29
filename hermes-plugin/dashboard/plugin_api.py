@@ -319,6 +319,36 @@ def _disk_state(path: Path) -> dict[str, Any]:
     }
 
 
+
+def _environment_security() -> dict[str, Any]:
+    root = Path.home() / ".config" / "environment.d"
+    findings: list[dict[str, Any]] = []
+    if root.is_dir():
+        try:
+            entries = list(root.glob("*.conf"))
+        except OSError:
+            entries = []
+        for path in entries:
+            try:
+                mode = path.stat().st_mode & 0o777
+            except OSError:
+                continue
+            if mode & 0o022:
+                findings.append({
+                    "file": path.name,
+                    "mode": format(mode, "03o"),
+                    "group_writable": bool(mode & 0o020),
+                    "world_writable": bool(mode & 0o002),
+                })
+    return {
+        "environment_d": str(root),
+        "unsafe_files": findings,
+        "unsafe_count": len(findings),
+        "status": "critical" if findings else "ok",
+    }
+
+
+
 def _fleet(control: dict[str, Any] | None, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if control and isinstance(control.get("fleet"), list):
         return control["fleet"][:200]
@@ -344,6 +374,7 @@ def build_snapshot() -> dict[str, Any]:
     capacity, quota_source = _quota()
     memory, memory_source = _agentsview()
     k8s, k8s_source = _k8s()
+    security = _environment_security()
     disks = {
         "home": _disk_state(Path.home()),
         "mnt": _disk_state(Path("/mnt")) if Path("/mnt").exists() else {"path": "/mnt", "status": "unavailable"},
@@ -367,6 +398,7 @@ def build_snapshot() -> dict[str, Any]:
         "economics": _economics(rows),
         "memory": memory,
         "k8s": k8s,
+        "security": security,
         "disks": disks,
         "flow": events,
         "control": {
