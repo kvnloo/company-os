@@ -87,3 +87,16 @@ agentsview daemon status
 ```
 
 CompanyOS uses the same variable, so the memory panel and AgentsView itself agree on the effective data root.
+
+
+## Security metadata checks
+
+`scripts/doctor.sh` and the projection backend inspect only file **metadata** under `~/.config/environment.d`. They never read configuration contents.
+
+Any group- or world-writable `*.conf` file is treated as critical because variables from that directory can be inherited by the systemd user manager and its units.
+
+For a file that may contain credentials, prefer mode `600`; otherwise `644` is normally sufficient when contents are non-sensitive.
+
+## AgentsView cold start
+
+On this workstation the offloaded archive currently contains thousands of sessions. A cold AgentsView start may spend roughly 100 seconds building/indexing before readiness. A readiness timeout during that window is not sufficient evidence of daemon failure; check daemon/log progress and retry status before classifying the memory plane as down.
