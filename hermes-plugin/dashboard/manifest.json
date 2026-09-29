@@ -1,0 +1,13 @@
+{
+  "name": "company-os",
+  "label": "Company OS Network",
+  "description": "Read-only local projection API for the Company OS cockpit.",
+  "icon": "Activity",
+  "version": "0.1.0",
+  "tab": {
+    "path": "/company-os-network",
+    "position": "after:analytics"
+  },
+  "entry": "dist/index.js",
+  "api": "plugin_api.py"
+}

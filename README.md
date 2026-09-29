@@ -1,53 +1,102 @@
 # Company OS
 
-Thin **Hermes** HUD. Not a company operating system, not a second Kanban, not Linear.
+Live, read-only cockpit for the local **z0 network** inside Hermes Desktop.
 
-**Look:** Kevin's cockpit reference (dark HUD, left rail, ring hub, prompt).
-**Nodes:** the real Company OS map — Voice intake, First Mate, HITL, Linear (company mind), Hermes Kanban (local execution), Third Mate / product, OSS lane (frontier harnesses), Second Mate / host.
+It keeps the existing dark HUD design, but the values now come from a sanitized local projection of:
 
-ENG / RESEARCH / OPS and fake 6/32 · 99.2% telemetry are **not** architecture. They stay out.
+- z0intelligence receipts/control state
+- active agent/harness processes
+- Kubernetes nodes and pods
+- Kerdoios provider/quota state
+- Tokenomics-style usage/cost fields from canonical receipts
+- AgentsView database/runtime health
+- local disk pressure
 
-It is a cockpit that **reads** live Hermes `host.state`. Hermes remains the runtime. You remain the approver.
+CompanyOS is still **not** the control plane. AODL/z0/Kerdoios/harnesses remain authoritative; CompanyOS only projects what they report.
 
-## What it is
-
-- Hermes Desktop plugin (`plugin/plugin.js`) — full page at `/company-os`
-- Optional static `web/index.html` for the same look without Desktop (demo numbers only)
-- [docs/](docs/README.md) — inspo frames + architecture stills
-- Blind theme jury (labels-hidden, sealed map): v1/v2 lose vs inspo; v3 win 8–5 and 8–6 on two independent critics. Theme freeze = void paper + rings + tracked type. Not “perfect”: left slabs still sparse.
-
-## What it is not
-
-- A control plane, issue tracker, or worker dispatcher
-- A Linear client (no Linear tokens)
-- A place for secrets, health data, or credentials
-
-## Install (Desktop)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/kvnloo/company-os/main/scripts/install.sh | bash
-```
-
-Or from a clone:
+## Install
 
 ```bash
 ./scripts/install.sh
 ```
 
-Then in Hermes Desktop: **⌘K → Reload desktop plugins** → sidebar **Company OS**.
+This links:
 
-`HERMES_HOME` defaults to `~/.hermes`. Named profiles use that profile's home.
+```text
+~/.hermes/desktop-plugins/company-os -> plugin/
+~/.hermes/plugins/company-os         -> hermes-plugin/
+```
 
-## How it connects
+Then restart `hermes dashboard` once if the backend API is new, and in Hermes Desktop use **Reload desktop plugins**.
 
-The plugin only uses the documented Desktop SDK:
+The projection API is namespaced by Hermes:
 
-- `host.state` — `busy`, `model`, `profile`, `gateway`, `cwd`, focused session
-- `host.request('session.list')` when available — session count, never task bodies
-- `host.navigate`, `host.notify`
+```text
+GET /api/plugins/company-os/snapshot
+GET /api/plugins/company-os/health
+```
 
-If an RPC is missing, the HUD still paints from `host.state`. It never writes Kanban or Linear.
+The Desktop UI polls the snapshot every 2 seconds.
+
+## Truth rules
+
+- Missing data renders as missing/unknown, never zero.
+- AgentsView is degraded when its runtime root is a symlink even if the DB itself is readable.
+- The browser never receives raw prompts, transcript bodies, credentials, environment secrets, or memory excerpts.
+- CompanyOS does not write Linear, Kanban, Kubernetes, z0, Kerdoios, or provider state.
+- Calls that cannot be joined to governed receipts should remain visibly ungoverned/unknown rather than receiving z0 savings credit.
+
+## Local overrides
+
+Optional environment variables for unusual layouts:
+
+```text
+Z0INT_HOME
+HERMES_HOME
+AGENTSVIEW_DATA_DIR
+COMPANY_OS_AGENTSVIEW_DB
+COMPANY_OS_KERDOIOS_LEDGER
+COMPANY_OS_Z0_SNAPSHOT
+COMPANY_OS_RECEIPTS
+```
+
+## Current integration target
+
+See CompanyOS #2 and z0intelligence #47.
+
+The immediate acceptance test is a live trace appearing as:
+
+```text
+AODL -> placement -> lease -> execute -> verify
+```
+
+alongside the active harness, provider/model, resource capacity, tokens/cost, memory health, and Kubernetes state.
 
 ## License
 
 MIT
+
+
+### AgentsView offload
+
+AgentsView officially supports `AGENTSVIEW_DATA_DIR`. If `~/.agentsview` is a symlink to a large offloaded corpus, do not move the corpus back to `$HOME`. Point AgentsView at the real directory instead:
+
+```bash
+export AGENTSVIEW_DATA_DIR=/mnt/zer0models/sft-svlm/data/agentsview
+agentsview daemon status
+```
+
+CompanyOS uses the same variable, so the memory panel and AgentsView itself agree on the effective data root.
+
+
+## Security metadata checks
+
+`scripts/doctor.sh` and the projection backend inspect only file **metadata** under `~/.config/environment.d`. They never read configuration contents.
+
+Any group- or world-writable `*.conf` file is treated as critical because variables from that directory can be inherited by the systemd user manager and its units.
+
+For a file that may contain credentials, prefer mode `600`; otherwise `644` is normally sufficient when contents are non-sensitive.
+
+## AgentsView cold start
+
+On this workstation the offloaded archive currently contains thousands of sessions. A cold AgentsView start may spend roughly 100 seconds building/indexing before readiness. A readiness timeout during that window is not sufficient evidence of daemon failure; check daemon/log progress and retry status before classifying the memory plane as down.
