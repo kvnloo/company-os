@@ -259,14 +259,20 @@ def _agentsview() -> tuple[dict[str, Any], dict[str, Any]]:
     if db is None and home.is_dir():
         candidates = list(home.glob("*.db")) + list(home.glob("**/sessions.db"))
         db = candidates[0] if candidates else None
+
+    home_symlink = home.is_symlink()
     state = {
         "cli": bool(shutil.which("agentsview")),
         "home_exists": home.exists(),
-        "home_symlink": home.is_symlink(),
+        "home_symlink": home_symlink,
+        "symlink_target": str(home.resolve()) if home_symlink else None,
+        "runtime_usable": bool(shutil.which("agentsview")) and not home_symlink,
         "database": str(db) if db else None,
+        "database_readable": False,
         "sessions": None,
         "messages": None,
     }
+
     if db and db.is_file():
         try:
             conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=0.5)
@@ -276,11 +282,38 @@ def _agentsview() -> tuple[dict[str, Any], dict[str, Any]]:
             if "messages" in names:
                 state["messages"] = int(conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0])
             conn.close()
-            return state, _source("ok", observed_at=db.stat().st_mtime)
+            state["database_readable"] = True
         except (sqlite3.Error, OSError) as exc:
             return state, _source("degraded", reason=type(exc).__name__)
-    status = "degraded" if state["cli"] or state["home_exists"] else "unavailable"
-    return state, _source(status)
+
+    if home_symlink:
+        return state, _source(
+            "degraded",
+            reason="runtime_root_symlink",
+            target=state["symlink_target"],
+            database_readable=state["database_readable"],
+        )
+    if state["runtime_usable"] and state["database_readable"]:
+        return state, _source("ok", observed_at=db.stat().st_mtime if db else None)
+    if state["cli"] or state["home_exists"] or state["database_readable"]:
+        return state, _source("degraded", reason="runtime_or_database_incomplete")
+    return state, _source("unavailable")
+
+
+def _disk_state(path: Path) -> dict[str, Any]:
+    try:
+        usage = shutil.disk_usage(path)
+    except OSError as exc:
+        return {"path": str(path), "status": "unavailable", "reason": type(exc).__name__}
+    free_pct = (usage.free / usage.total * 100.0) if usage.total else 0.0
+    return {
+        "path": str(path),
+        "status": "critical" if free_pct < 2 else ("warning" if free_pct < 10 else "ok"),
+        "total_bytes": usage.total,
+        "used_bytes": usage.used,
+        "free_bytes": usage.free,
+        "free_pct": round(free_pct, 2),
+    }
 
 
 def _fleet(control: dict[str, Any] | None, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -308,6 +341,10 @@ def build_snapshot() -> dict[str, Any]:
     capacity, quota_source = _quota()
     memory, memory_source = _agentsview()
     k8s, k8s_source = _k8s()
+    disks = {
+        "home": _disk_state(Path.home()),
+        "mnt": _disk_state(Path("/mnt")) if Path("/mnt").exists() else {"path": "/mnt", "status": "unavailable"},
+    }
     events = [_event(r) for r in rows[:MAX_EVENTS]]
     sources = {
         "z0": z0_source,
@@ -327,6 +364,7 @@ def build_snapshot() -> dict[str, Any]:
         "economics": _economics(rows),
         "memory": memory,
         "k8s": k8s,
+        "disks": disks,
         "flow": events,
         "control": {
             "available": control is not None,
