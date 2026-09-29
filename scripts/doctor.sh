@@ -14,8 +14,19 @@ check_link() {
 check_link "$HERMES_HOME/desktop-plugins/company-os"
 check_link "$HERMES_HOME/plugins/company-os"
 
-AGENTSVIEW_ROOT="${AGENTSVIEW_DATA_DIR:-$HOME/.agentsview}"
-printf 'INFO AgentsView data dir: %s\n' "$AGENTSVIEW_ROOT"
+manager_agentsview_root=""
+if [[ -z ${AGENTSVIEW_DATA_DIR:-} ]] && command -v systemctl >/dev/null 2>&1; then
+  manager_agentsview_root=$(
+    systemctl --user show-environment 2>/dev/null \
+      | sed -n 's/^AGENTSVIEW_DATA_DIR=//p' \
+      | head -n 1
+  )
+fi
+AGENTSVIEW_ROOT="${AGENTSVIEW_DATA_DIR:-${manager_agentsview_root:-$HOME/.agentsview}}"
+AGENTSVIEW_SOURCE="default"
+[[ -n ${manager_agentsview_root:-} ]] && AGENTSVIEW_SOURCE="systemd-user-manager"
+[[ -n ${AGENTSVIEW_DATA_DIR:-} ]] && AGENTSVIEW_SOURCE="ambient-env"
+printf 'INFO AgentsView data dir: %s (%s)\n' "$AGENTSVIEW_ROOT" "$AGENTSVIEW_SOURCE"
 if [[ -L "$AGENTSVIEW_ROOT" ]]; then
   printf 'WARN effective AgentsView data dir is symlink -> %s\n' "$(readlink "$AGENTSVIEW_ROOT")"
 elif [[ -d "$AGENTSVIEW_ROOT" ]]; then
@@ -23,8 +34,8 @@ elif [[ -d "$AGENTSVIEW_ROOT" ]]; then
 else
   printf 'MISS effective AgentsView data dir\n'
 fi
-if [[ -z ${AGENTSVIEW_DATA_DIR:-} && -L "$HOME/.agentsview" ]]; then
-  printf 'HINT export AGENTSVIEW_DATA_DIR="%s" to bypass the symlink safely\n' "$(readlink -f "$HOME/.agentsview")"
+if [[ "$AGENTSVIEW_SOURCE" == "default" && -L "$HOME/.agentsview" ]]; then
+  printf 'HINT persist AGENTSVIEW_DATA_DIR="%s" to bypass the symlink safely\n' "$(readlink -f "$HOME/.agentsview")"
 fi
 
 df -h "$HOME" /mnt 2>/dev/null || true
