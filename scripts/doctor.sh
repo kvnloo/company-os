@@ -36,3 +36,25 @@ if command -v curl >/dev/null 2>&1; then
     printf '\nWARN projection API unavailable; restart hermes dashboard if plugin_api.py was newly installed\n'
   fi
 fi
+
+printf '\nSecurity metadata checks (contents are never read):\n'
+envd="$HOME/.config/environment.d"
+if [[ -d "$envd" ]]; then
+  found=0
+  while IFS= read -r -d '' f; do
+    mode=$(stat -c '%a' "$f" 2>/dev/null || true)
+    [[ -z "$mode" ]] && continue
+    last2=$((10#$mode % 100))
+    group=$((last2 / 10))
+    other=$((last2 % 10))
+    if (( (group & 2) != 0 || (other & 2) != 0 )); then
+      printf 'CRIT %s mode=%s is group/world-writable\n' "$f" "$mode"
+      found=1
+    fi
+  done < <(find "$envd" -maxdepth 1 -type f -name '*.conf' -print0 2>/dev/null)
+  if [[ $found -eq 0 ]]; then
+    printf 'OK   no group/world-writable environment.d files\n'
+  fi
+fi
+
+printf '\nNote: first AgentsView start against a large archive may spend ~100s indexing before daemon readiness.\n'
