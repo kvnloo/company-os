@@ -179,7 +179,7 @@ function buildHierarchy(s,currentModel){
 
   const sessionNodes=sessions.slice(0,8).map(x=>({
     key:'session:'+str(x.session_id),
-    label:short(x.runtime||x.session_id||'session',22),
+    label:short(x.name||x.runtime||x.session_id||'session',22),
     kind:'state',
     detail:short((x.status||'unknown')+' · '+(x.host_id||'host unknown'),34),
     children:[
