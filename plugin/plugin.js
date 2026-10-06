@@ -45,7 +45,7 @@ const CSS = [
   '.cos-foot{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:10px 28px 22px}',
   '.cos-metric{border:1px solid #1e1e1e;padding:11px}.cos-num{font-family:ui-monospace,Menlo,monospace;font-size:18px}',
   '.cos-sources{display:flex;gap:5px;flex-wrap:wrap}.cos-source{border:1px solid #222;padding:3px 5px;font-size:8px;text-transform:uppercase}',
-  '.cos-source.ok{border-color:#29442e;color:#7dff9a}.cos-source.degraded,.cos-source.missing{color:#f2cf72}.cos-source.unavailable{color:#777}'
+  '.cos-source.ok{border-color:#29442e;color:#7dff9a}.cos-source.degraded,.cos-source.missing{color:#f2cf72}.cos-source.unavailable{color:#777}',
   '.cos-map{margin:12px 28px 0;border:1px solid #1e1e1e;background:#0a0a0a;padding:14px;overflow:auto;min-height:330px}',
   '.cos-map-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:8px}',
   '.cos-legend{display:flex;gap:10px;flex-wrap:wrap;font-family:ui-monospace,Menlo,monospace;font-size:8px;color:#777}',
