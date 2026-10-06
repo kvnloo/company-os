@@ -40,6 +40,28 @@ fi
 
 df -h "$HOME" /mnt 2>/dev/null || true
 
+Z0INT_HOME="${Z0INT_HOME:-$HOME/.z0int}"
+CAPACITY_SNAPSHOT="${COMPANY_OS_Z0_CAPACITY_SNAPSHOT:-$Z0INT_HOME/state/capacity_snapshot.json}"
+if [[ -f "$CAPACITY_SNAPSHOT" ]]; then
+  if command -v python3 >/dev/null 2>&1 && python3 - "$CAPACITY_SNAPSHOT" <<'PY'
+import json, sys
+from pathlib import Path
+try:
+    data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+except Exception:
+    raise SystemExit(1)
+raise SystemExit(0 if data.get("schema") == "z0.capacity.snapshot.v1" else 1)
+PY
+  then
+    printf 'OK   z0 capacity snapshot: %s\n' "$CAPACITY_SNAPSHOT"
+  else
+    printf 'WARN z0 capacity snapshot exists but schema/JSON is invalid: %s\n' "$CAPACITY_SNAPSHOT"
+  fi
+else
+  printf 'INFO z0 capacity snapshot not emitted yet (optional): %s\n' "$CAPACITY_SNAPSHOT"
+  printf 'HINT run: z0int capacity snapshot --json\n'
+fi
+
 if command -v curl >/dev/null 2>&1; then
   if curl -fsS --max-time 3 http://127.0.0.1:9119/api/plugins/company-os/health; then
     printf '\nOK   Company OS projection API\n'
