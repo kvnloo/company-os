@@ -262,6 +262,7 @@ def _sanitize_capacity_snapshot(data: Any) -> dict[str, Any] | None:
             "burn_rate": row.get("burn_rate"),
             "time_to_exhaustion": row.get("time_to_exhaustion"),
             "time_to_reset": row.get("time_to_reset"),
+            "reset_at": row.get("reset_at"),
             "observed_at": row.get("observed_at"),
         })
 
