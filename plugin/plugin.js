@@ -127,6 +127,14 @@ function quotaDetail(row={}){
   const lim=firstLimit(q)
   return lim==null?count(rem)+' remaining':count(rem)+' / '+count(lim)+' remaining'
 }
+function resetDetail(row={}){
+  if(Number.isFinite(Number(row.reset_at))) return 'reset '+t(Number(row.reset_at))
+  const s=Number(row.time_to_reset)
+  if(!Number.isFinite(s)) return 'reset unknown'
+  if(s<60) return 'reset in '+Math.max(0,Math.round(s))+'s'
+  if(s<3600) return 'reset in '+Math.max(0,Math.round(s/60))+'m'
+  return 'reset in '+Math.max(0,Math.round(s/3600))+'h'
+}
 
 function chain(nodes){
   let child=null
@@ -193,7 +201,7 @@ function buildHierarchy(s,currentModel){
     kind:'state',
     detail:short((o.model||'model unknown')+' · '+quotaDetail(o),40),
     children:[
-      {label:o.health||'health unknown',kind:'out',detail:Number.isFinite(Number(o.time_to_reset))?'reset '+t(o.time_to_reset):'reset unknown'}
+      {label:o.health||'health unknown',kind:'out',detail:resetDetail(o)}
     ]
   }))
 
