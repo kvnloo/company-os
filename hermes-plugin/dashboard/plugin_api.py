@@ -228,9 +228,13 @@ def _sanitize_capacity_snapshot(data: Any) -> dict[str, Any] | None:
             key: row.get(key)
             for key in (
                 "session_id",
+                "name",
                 "host_id",
                 "runtime",
                 "status",
+                "current",
+                "locked",
+                "tab_count",
                 "rtt_ms",
                 "pane_id",
                 "session_sticky",
