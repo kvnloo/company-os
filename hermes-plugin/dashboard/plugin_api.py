@@ -20,6 +20,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 SCHEMA = "company_os.snapshot.v1"
+CAPACITY_SCHEMA = "z0.capacity.snapshot.v1"
 HERMES_HOME = Path(os.environ.get("HERMES_HOME", "~/.hermes")).expanduser()
 Z0_HOME = Path(os.environ.get("Z0INT_HOME", "~/.z0int")).expanduser()
 MAX_EVENTS = 40
@@ -139,6 +140,178 @@ def _z0_control() -> tuple[dict[str, Any] | None, dict[str, Any]]:
     if isinstance(data, dict):
         return data, _source("ok", path=str(path), observed_at=path.stat().st_mtime)
     return None, _source("missing", path=str(path))
+
+
+def _safe_capacity_quota(value: Any) -> dict[str, Any]:
+    src = value if isinstance(value, dict) else {}
+    out: dict[str, Any] = {}
+    dimensions = src.get("dimensions")
+    if isinstance(dimensions, dict):
+        safe_dims: dict[str, Any] = {}
+        for name, dim in dimensions.items():
+            if not isinstance(name, str) or not isinstance(dim, dict):
+                continue
+            safe_dims[name] = {
+                key: dim.get(key)
+                for key in ("limit", "remaining", "reset_at", "source")
+                if key in dim
+            }
+        if safe_dims:
+            out["dimensions"] = safe_dims
+    for key in (
+        "remaining_free_quota",
+        "remaining_tokens",
+        "remaining",
+        "day_tokens_remaining",
+        "limit",
+        "daily_limit",
+        "day_tokens_limit",
+        "reset_at",
+    ):
+        if key in src:
+            out[key] = src.get(key)
+    return out
+
+
+def _safe_capacity_resources(value: Any) -> dict[str, Any]:
+    src = value if isinstance(value, dict) else {}
+    out = {
+        key: src.get(key)
+        for key in (
+            "cpu_logical",
+            "ram_total_bytes",
+            "ram_available_bytes",
+            "storage_total_bytes",
+            "storage_free_bytes",
+            "gpu_count",
+        )
+        if key in src
+    }
+    gpus = []
+    for gpu in src.get("gpus") or []:
+        if not isinstance(gpu, dict):
+            continue
+        gpus.append({
+            key: gpu.get(key)
+            for key in ("id", "name", "memory_total_bytes", "memory_free_bytes", "utilization_pct")
+            if key in gpu
+        })
+    if gpus:
+        out["gpus"] = gpus
+        out["gpu_count"] = src.get("gpu_count", len(gpus))
+    return out
+
+
+def _sanitize_capacity_snapshot(data: Any) -> dict[str, Any] | None:
+    if not isinstance(data, dict) or data.get("schema") != CAPACITY_SCHEMA:
+        return None
+
+    hosts = []
+    for row in data.get("hosts") or []:
+        if not isinstance(row, dict) or row.get("host_id") is None:
+            continue
+        hosts.append({
+            "host_id": row.get("host_id"),
+            "label": row.get("label"),
+            "mode": row.get("mode"),
+            "status": row.get("status"),
+            "rtt_ms": row.get("rtt_ms"),
+            "resources": _safe_capacity_resources(row.get("resources")),
+            "observed_at": row.get("observed_at"),
+        })
+
+    sessions = []
+    for row in data.get("sessions") or []:
+        if not isinstance(row, dict) or row.get("session_id") is None:
+            continue
+        sessions.append({
+            key: row.get(key)
+            for key in (
+                "session_id",
+                "host_id",
+                "runtime",
+                "status",
+                "rtt_ms",
+                "pane_id",
+                "session_sticky",
+                "migration_allowed",
+                "observed_at",
+            )
+        })
+
+    offers = []
+    for row in data.get("offers") or []:
+        if not isinstance(row, dict) or row.get("offer_id") is None:
+            continue
+        offers.append({
+            "offer_id": row.get("offer_id"),
+            "origin": row.get("origin"),
+            "provider": row.get("provider"),
+            "model": row.get("model"),
+            "actor_id": row.get("actor_id"),
+            "host_id": row.get("host_id"),
+            "health": row.get("health"),
+            "resources": _safe_capacity_resources(row.get("resources")),
+            "quota": _safe_capacity_quota(row.get("quota")),
+            "price": row.get("price"),
+            "predicted_cost": row.get("predicted_cost"),
+            "burn_rate": row.get("burn_rate"),
+            "time_to_exhaustion": row.get("time_to_exhaustion"),
+            "time_to_reset": row.get("time_to_reset"),
+            "observed_at": row.get("observed_at"),
+        })
+
+    leases = []
+    for row in data.get("leases") or []:
+        if not isinstance(row, dict) or row.get("placement_id") is None:
+            continue
+        leases.append({
+            key: row.get(key)
+            for key in (
+                "placement_id",
+                "demand_id",
+                "offer_id",
+                "selected_offer_id",
+                "status",
+                "lease_expires_at",
+                "selection_reason",
+                "policy_revision",
+            )
+            if key in row
+        })
+
+    return {
+        "schema": CAPACITY_SCHEMA,
+        "generated_at": data.get("generated_at"),
+        "status": data.get("status"),
+        "sources": data.get("sources") if isinstance(data.get("sources"), dict) else {},
+        "hosts": hosts,
+        "sessions": sessions,
+        "offers": offers,
+        "leases": leases,
+        "summary": {
+            "hosts": len(hosts),
+            "sessions": len(sessions),
+            "offers": len(offers),
+            "leases": len(leases),
+        },
+    }
+
+
+def _z0_capacity() -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    override = os.environ.get("COMPANY_OS_Z0_CAPACITY_SNAPSHOT")
+    path = Path(override).expanduser() if override else Z0_HOME / "state" / "capacity_snapshot.json"
+    raw = _read_json(path)
+    if raw is None:
+        return None, _source("missing", path=str(path), optional=True)
+    data = _sanitize_capacity_snapshot(raw)
+    if data is None:
+        return None, _source("degraded", path=str(path), reason="invalid_capacity_schema", optional=True)
+    try:
+        observed_at = path.stat().st_mtime
+    except OSError:
+        observed_at = None
+    return data, _source("ok", path=str(path), observed_at=observed_at, optional=True)
 
 
 def _receipt_paths() -> list[Path]:
@@ -370,6 +543,7 @@ def _fleet(control: dict[str, Any] | None, rows: list[dict[str, Any]]) -> list[d
 
 def build_snapshot() -> dict[str, Any]:
     control, z0_source = _z0_control()
+    capacity_plane, capacity_plane_source = _z0_capacity()
     rows, receipt_source = _receipt_rows()
     capacity, quota_source = _quota()
     memory, memory_source = _agentsview()
@@ -382,12 +556,18 @@ def build_snapshot() -> dict[str, Any]:
     events = [_event(r) for r in rows[:MAX_EVENTS]]
     sources = {
         "z0": z0_source,
+        "z0_capacity": capacity_plane_source,
         "receipts": receipt_source,
         "kerdoios": quota_source,
         "memory": memory_source,
         "k8s": k8s_source,
     }
-    overall = "ok" if all(v["status"] == "ok" for v in sources.values()) else "degraded"
+    required_sources = {
+        name: value
+        for name, value in sources.items()
+        if not value.get("optional")
+    }
+    overall = "ok" if all(v["status"] == "ok" for v in required_sources.values()) else "degraded"
     return {
         "schema": SCHEMA,
         "generated_at": _now(),
@@ -395,6 +575,7 @@ def build_snapshot() -> dict[str, Any]:
         "sources": sources,
         "fleet": _fleet(control, rows),
         "capacity": capacity,
+        "capacity_plane": capacity_plane,
         "economics": _economics(rows),
         "memory": memory,
         "k8s": k8s,
