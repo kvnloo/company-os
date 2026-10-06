@@ -11,6 +11,27 @@ It keeps the existing dark HUD design, but the values now come from a sanitized 
 - Tokenomics-style usage/cost fields from canonical receipts
 - AgentsView database/runtime health
 - local disk pressure
+- optional `z0.capacity.snapshot.v1` fleet/capacity projection
+
+The main cockpit now includes a **network hierarchy** inspired by the compact view/state/action map used for the Local AI panel. It expands the live system as:
+
+```text
+Company OS
+├─ fleet
+│  ├─ hosts → resources / origin
+│  └─ sessions → sticky / checkpoint-only migration
+├─ capacity
+│  ├─ devices
+│  ├─ providers
+│  └─ placement leases
+├─ intelligence
+├─ control path
+│  └─ AODL → semantic candidates → placement → execute → verify
+├─ economics
+└─ gaps
+```
+
+Hierarchy node semantics are explicit: `view`, `state`, `action`, `out`, and `gap`. Actions are UI-only drill-downs; they do not dispatch or mutate resources.
 
 CompanyOS is still **not** the control plane. AODL/z0/Kerdoios/harnesses remain authoritative; CompanyOS only projects what they report.
 
@@ -57,12 +78,13 @@ AGENTSVIEW_DATA_DIR
 COMPANY_OS_AGENTSVIEW_DB
 COMPANY_OS_KERDOIOS_LEDGER
 COMPANY_OS_Z0_SNAPSHOT
+COMPANY_OS_Z0_CAPACITY_SNAPSHOT
 COMPANY_OS_RECEIPTS
 ```
 
 ## Current integration target
 
-See CompanyOS #2 and z0intelligence #47.
+See CompanyOS #2, z0intelligence #47, and the federated-capacity work in z0intelligence #131/#133 (implementation #134).
 
 The immediate acceptance test is a live trace appearing as:
 
