@@ -1,0 +1,21 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Desktop plugin syntax
+        run: node --check plugin/plugin.js
+      - name: Check projection backend syntax
+        run: python3 -m py_compile hermes-plugin/dashboard/plugin_api.py
+      - name: Check installer syntax
+        run: bash -n scripts/install.sh
+      - name: Check doctor syntax
+        run: bash -n scripts/doctor.sh

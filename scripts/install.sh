@@ -34,7 +34,19 @@ fi
 
 [[ -f $ROOT/plugin/plugin.js ]] || die "plugin.js missing under $ROOT/plugin"
 
-mkdir -p "$HERMES_HOME/desktop-plugins"
+[[ -f $ROOT/hermes-plugin/dashboard/manifest.json ]] || die "Hermes backend manifest missing"
+[[ -f $ROOT/hermes-plugin/dashboard/plugin_api.py ]] || die "Hermes backend API missing"
+
+mkdir -p "$HERMES_HOME/desktop-plugins" "$HERMES_HOME/plugins"
 ln -sfn "$ROOT/plugin" "$HERMES_HOME/desktop-plugins/$PLUGIN_ID"
-log "linked $HERMES_HOME/desktop-plugins/$PLUGIN_ID → $ROOT/plugin"
+ln -sfn "$ROOT/hermes-plugin" "$HERMES_HOME/plugins/$PLUGIN_ID"
+log "linked Desktop plugin → $HERMES_HOME/desktop-plugins/$PLUGIN_ID"
+log "linked projection backend → $HERMES_HOME/plugins/$PLUGIN_ID"
+
+if command -v curl >/dev/null 2>&1; then
+  curl -fsS --max-time 2 http://127.0.0.1:9119/api/dashboard/plugins/rescan >/dev/null 2>&1 || true
+fi
+
+log "Backend API: /api/plugins/company-os/snapshot"
+log "If that route is new, restart 'hermes dashboard' once so plugin_api.py mounts."
 log "In Hermes Desktop: ⌘K → Reload desktop plugins → open Company OS"
