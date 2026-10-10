@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" data-hud-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CompanyOS v3 visual recovery. A read-only, static historical architecture preview; not live telemetry.">
+  <meta name="color-scheme" content="dark light">
+  <title>CompanyOS — v3 style preview</title>
+  <link rel="icon" href="/style-preview/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/hud-v3.css">
+  <script src="/style-preview/preview.js" defer></script>
+</head>
+<body class="hud-preview">
+  <a class="hud-skip" href="#cockpit">Skip to architecture</a>
+  <div class="hud-shell">
+    <header class="hud-header">
+      <div class="hud-brand">
+        <h1 aria-label="zer0 company OS">zer<span class="hud-brand-orbit" aria-hidden="true"></span></h1>
+        <p class="hud-brand-sub">company os</p>
+        <p class="hud-mode"><span class="hud-dot" aria-hidden="true"></span>style preview <span class="hud-mode-divider">/</span> read-only</p>
+      </div>
+      <div class="hud-title hud-brackets">
+        <p class="hud-version">ARCH / V3</p>
+        <p class="hud-label">Static architecture</p>
+      </div>
+      <div class="hud-header-right">
+        <dl class="hud-observations">
+          <div><dt>agents observed</dt><dd>— / —</dd></div>
+          <div><dt>tools observed</dt><dd>—</dd></div>
+        </dl>
+        <div class="hud-theme-switch" role="group" aria-label="Color theme">
+          <button type="button" data-theme="dark" aria-pressed="true">Dark</button>
+          <span aria-hidden="true">/</span>
+          <button type="button" data-theme="light" aria-pressed="false">Light</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="cockpit" class="hud-cockpit" tabindex="-1">
+      <aside class="hud-rail" aria-label="Historical intake and authority roles">
+        <section class="hud-panel hud-brackets hud-intake">
+          <h2 class="hud-label">Voice / intake</h2>
+          <svg class="hud-intake-glyph" viewBox="0 0 196 98" aria-hidden="true">
+            <defs><pattern id="intake-grid" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="currentColor" opacity=".2"/></pattern></defs>
+            <rect x="0" y="8" width="196" height="78" fill="url(#intake-grid)"/>
+            <path d="M74 49 98 25 122 49 98 73Z" fill="var(--hud-panel)" stroke="currentColor" stroke-width="1"/>
+            <circle cx="98" cy="49" r="3" fill="currentColor"/>
+          </svg>
+          <p class="hud-panel-title">An idea enters.</p>
+          <p class="hud-muted">Intake is not execution.</p>
+          <p class="hud-note">No microphone · not connected</p>
+        </section>
+        <section class="hud-panel hud-brackets">
+          <h2 class="hud-label">First mate</h2>
+          <p class="hud-panel-title">Chief of staff</p>
+          <p class="hud-muted">One contextualized brief.<br>Intent before execution.</p>
+        </section>
+        <section class="hud-panel hud-brackets">
+          <h2 class="hud-label">Human in the loop</h2>
+          <div class="hud-authority-glyph" aria-hidden="true"><span></span><i></i><span></span></div>
+          <p class="hud-panel-title">Approval boundary</p>
+          <p class="hud-muted">Merge, money, credentials.<br>Never authorized by this HUD.</p>
+        </section>
+      </aside>
+
+      <figure class="hud-hub" aria-labelledby="hub-name hub-description">
+        <svg class="hud-orbit" viewBox="0 0 460 460" role="img" aria-labelledby="orbit-title orbit-description">
+          <title id="orbit-title">Historical v3 architecture ring</title>
+          <desc id="orbit-description">Linear at the center, MCP at the left, human approval above and Kanban below. Rings are a static architectural motif, not progress or activity.</desc>
+          <g class="hud-ring-dots" fill="none" stroke="currentColor" stroke-linecap="round" stroke-dasharray=".001 .999" transform="rotate(-90 230 230)">
+            <circle cx="230" cy="230" r="78" pathLength="32" stroke-width="2.3" opacity=".28"/>
+            <circle cx="230" cy="230" r="118" pathLength="48" stroke-width="2.3" opacity=".46"/>
+            <circle cx="230" cy="230" r="158" pathLength="64" stroke-width="2.3" opacity=".64"/>
+            <circle cx="230" cy="230" r="198" pathLength="80" stroke-width="3.2" opacity=".82"/>
+          </g>
+          <g class="hud-orbit-links" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="1 6">
+            <path d="M110 230H194M230 90V194M230 266V370"/>
+          </g>
+          <circle class="hud-core" cx="230" cy="230" r="32"/>
+          <g class="hud-orbit-nodes" stroke="currentColor" stroke-width="1.2" fill="var(--hud-bg)">
+            <circle cx="230" cy="70" r="5"/><circle cx="230" cy="390" r="5"/>
+            <path d="M86 230 98 218 110 230 98 242Z"/>
+          </g>
+          <g class="hud-orbit-type" fill="currentColor" text-anchor="middle">
+            <text x="230" y="52">HITL</text>
+            <text x="98" y="268">MCP</text>
+            <text x="230" y="430">KANBAN</text>
+          </g>
+        </svg>
+        <figcaption>
+          <h2 id="hub-name" class="hud-hub-name">Linear</h2>
+          <p id="hub-description" class="hud-hub-sub">company mind</p>
+          <p class="hud-hub-qualifier">Historical map · not runtime</p>
+        </figcaption>
+      </figure>
+
+      <aside class="hud-lanes" aria-label="Historical ownership lanes">
+        <p class="hud-label hud-lanes-heading">Ownership / v3</p>
+        <details class="hud-lane">
+          <summary><span class="hud-orb hud-orb-solid" aria-hidden="true"></span><span><span class="hud-label">Product</span><span class="hud-lane-name">Third mate</span></span><svg class="hud-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 9 8-4.5M12 12 4 7.5M12 12v9"/></svg><span class="hud-disclosure" aria-hidden="true">+</span></summary>
+          <p>One owner per product or project. Brief, acceptance, dependencies and evidence; not host-board ownership.</p>
+        </details>
+        <details class="hud-lane">
+          <summary><span class="hud-orb" aria-hidden="true"></span><span><span class="hud-label">OSS lane</span><span class="hud-lane-name">Frontier harnesses</span></span><svg class="hud-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 6 6 6-6 6m9 0h7"/></svg><span class="hud-disclosure" aria-hidden="true">+</span></summary>
+          <p>Harness development is a distinct lane in the historical map. A harness name is not an observed worker or active session.</p>
+        </details>
+        <details class="hud-lane">
+          <summary><span class="hud-orb" aria-hidden="true"></span><span><span class="hud-label">Host</span><span class="hud-lane-name">Second mate</span></span><svg class="hud-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v13H3ZM8 21h8m-4-4v4M6 14h.01"/></svg><span class="hud-disclosure" aria-hidden="true">+</span></summary>
+          <p>One owner per host. Local Kanban, leases, workers and runtime. No host is queried by this preview.</p>
+        </details>
+        <p class="hud-lane-caption">Select a lane to inspect its role.<br>Architecture is not activation.</p>
+      </aside>
+    </main>
+
+    <footer class="hud-footer">
+      <div class="hud-truth">
+        <p class="hud-label">Preview boundary</p>
+        <p>Not live telemetry</p>
+        <span class="hud-muted">No activity or progress is simulated.</span>
+      </div>
+      <a class="hud-inspect" href="#source-notes"><span class="hud-inspect-mark" aria-hidden="true">i</span><span>Inspect architecture &amp; source notes</span><span class="hud-arrow" aria-hidden="true">↓</span></a>
+      <div class="hud-system">
+        <p class="hud-label">Historical contracts</p>
+        <dl><div><dt>voice brief</dt><dd>Backlog → Todo</dd></div><div><dt>factory</dt><dd>Done to post</dd></div><div><dt>kanban</dt><dd>execution</dd></div></dl>
+      </div>
+    </footer>
+  </div>
+
+  <section id="source-notes" class="hud-source-notes" aria-labelledby="source-title" tabindex="-1">
+    <div class="hud-source-heading"><div><p class="hud-label">Provenance / visual recovery</p><h2 id="source-title">The surface, not a second system.</h2></div><a class="hud-back" href="#cockpit">Back to map ↑</a></div>
+    <div class="hud-source-grid">
+      <article><h3>What this shows</h3><p>A static rendering of the historical v3 architecture, recovered from the repository's frozen design. Names describe historical roles, not current deployment or observed runtime. Rings carry no percentage, readiness score or activity signal.</p><p>Theme selection and role disclosure only change this page. No dispatch, approvals, microphone, telemetry polling or tracker writes.</p></article>
+      <article><h3>Direct visual sources</h3><ul class="hud-source-list"><li><a href="https://github.com/kvnloo/company-os/blob/3f3fea2ce766e2ab85ce93e82da8610835c0aad6/docs/architecture/hud-theme-v3.png">Frozen v3 surface <span>3f3fea2 ↗</span></a></li><li><a href="https://github.com/kvnloo/company-os/blob/3d0f6eb3e2495bb46f232f4994a0902541fd0d5a/web/index.html">Historical architecture <span>3d0f6eb ↗</span></a></li><li><a href="https://github.com/kvnloo/company-os/blob/3d0f6eb3e2495bb46f232f4994a0902541fd0d5a/docs/inspo/hud-dark-cockpit.jpg">Dark cockpit reference <span>↗</span></a></li><li><a href="https://github.com/kvnloo/company-os/blob/3d0f6eb3e2495bb46f232f4994a0902541fd0d5a/docs/inspo/hud-light.jpg">Light reference <span>↗</span></a></li></ul></article>
+      <article><h3>New reference / pending</h3><p><a href="https://github.com/kvnloo/company-os/issues/5">CompanyOS #5 ↗</a> describes a newer north-star clip, but its current issue has no video attachment or URL. The video has not been inspected and no visual findings are claimed from it.</p><p>Dynamic content integration remains separate. The existing read-only implementation is preserved, not replaced by this preview.</p></article>
+    </div>
+    <p class="hud-source-foot">CompanyOS · local style preview · no live data connection</p>
+  </section>
+</body>
+</html>

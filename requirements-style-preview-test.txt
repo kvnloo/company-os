@@ -1,0 +1,5 @@
+# Browser-only style tests, in addition to existing backend tests.
+-r requirements-test.txt
+playwright==1.63.0
+pillow==12.3.0
+# Tests use the installed /usr/bin/chromium; no download or GUI auto-open.

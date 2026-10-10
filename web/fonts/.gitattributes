@@ -1,0 +1,3 @@
+# Normalize upstream license line endings in Git; font binaries stay exact.
+OFL-*.txt text eol=lf
+*.ttf binary

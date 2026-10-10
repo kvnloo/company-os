@@ -72,6 +72,12 @@ bash -n scripts/doctor.sh
 
 Python unit-test dependencies are in `requirements-test.txt`. Tests import production modules, use real loopback HTTP fixtures, exercise routes and reject mutation methods. The Node VM tests execute the actual Desktop module and shipped browser bundle. `scripts/mutation_checks.py` checks regression sensitivity using isolated copies, never modifying the source under test.
 
+## Static v3 style preview (separate from live diagnostic)
+
+`python scripts/style_preview.py --port 18744` serves `/style-preview/` on loopback and prints its actual URL/PID without opening a browser. This recovers the historical dark v3 visual foundation with an explicit light switch, crisp SVG, reusable `web/hud-v3.css` tokens and self-hosted IBM Plex fonts. It is clearly labeled **static historical architecture / not live telemetry** and cannot poll, dispatch or approve anything. The live plugin and old `web/index.html` remain unchanged.
+
+Browser-test dependencies are in `requirements-style-preview-test.txt`; run `STYLE_PREVIEW_ARTIFACTS=/absolute/evidence/path python -m pytest tests/test_style_preview.py -q` for the owned server/browser gate and both-theme responsive screenshots. See [visual lineage, blocked video reference and future integration boundary](docs/style-preview.md).
+
 ## Isolated live browser/API diagnostic
 
 This does **not** start the full Hermes server, change profiles, link/install the plugin, refresh credentials, open a native browser, or restart a service. It bundles the installed Hermes **loader, registry, PluginPage and fetchJSON** into a minimal owned loopback host, mounts the production router, and consumes existing live GET sources.
