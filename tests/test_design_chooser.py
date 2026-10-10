@@ -85,10 +85,8 @@ def test_fixed_get_proxy_preserves_bytes_and_rejects_writes():
 
 
 @pytest.fixture(scope='module')
-def chooser_url():
-    with Running(load_server().make_server(0, artifacts=ARTIFACTS)) as server:
-        assert read(server.url + '/design-chooser/')[0] == 200, 'interactive chooser route must exist'
-        yield server.url
+def chooser_url(integrated_server):
+    return integrated_server['url'].split('/design-chooser/')[0]
 
 
 @pytest.fixture(scope='module')
@@ -153,7 +151,7 @@ def test_all_layouts_theme_and_local_choice_survive_reload_and_download(chooser_
             assert page.locator('#inspect-title').inner_text() == 'z0_metrics'
             assert page.locator('.k8s-list [data-pod]').count() > 0
             rows.append({'layout':key,'theme':theme.lower(),'detail':'z0_metrics'})
-        page.get_by_role('button', name='Choose this design', exact=True).click()
+        page.get_by_role('button', name='Save as default view', exact=True).click()
         assert title in page.locator('#choice-state').inner_text()
         assert 'Saved locally' in page.locator('#choice-state').inner_text()
         page.reload()
@@ -162,7 +160,7 @@ def test_all_layouts_theme_and_local_choice_survive_reload_and_download(chooser_
         assert page.locator('html').get_attribute('data-hud-theme') == 'dark'
         assert title in page.locator('#choice-state').inner_text()
     with page.expect_download() as pending:
-        page.get_by_role('button', name='Download choice', exact=True).click()
+        page.get_by_role('button', name='Download preference', exact=True).click()
     dest = tmp_path / 'selection.json'
     pending.value.save_as(dest)
     choice = json.loads(dest.read_text())
@@ -181,7 +179,7 @@ def test_all_layouts_theme_and_local_choice_survive_reload_and_download(chooser_
     page.keyboard.press('Home')
     assert page.locator('#workspace').get_attribute('data-layout') == 'spatial'
     assert page.locator('#choice-state').inner_text().startswith('Saved locally: Instrument desk')
-    assert page.locator('#choice-controls').inner_text().find('Choose this design') >= 0
+    assert page.locator('#choice-controls').inner_text().find('Save as default view') >= 0
     (ARTIFACTS / 'choice-receipt.json').write_text(json.dumps({'matrix':rows,'download':choice},indent=2))
     assert len(rows) == 6
     page.close()
@@ -195,10 +193,13 @@ def test_polling_outage_retains_last_known_and_recovers_without_losing_inspectio
     previous=page.locator('#snapshot-time').inner_text()
     page.wait_for_function('(before) => document.querySelector("#snapshot-time").textContent !== before', arg=previous, timeout=25000)
     page.get_by_role('button',name='Inspect service metrics',exact=True).click()
-    assert 'service metrics, not economics' in page.locator('#inspect-body').inner_text()
-    assert page.locator('#inspect-body').get_by_text('z0intelligence_dispatch_active',exact=True).is_visible()
+    assert 'Not cost, task totals or quality' in page.locator('#inspect-body').inner_text()
+    metric=page.locator('#inspect-body').get_by_text('dispatch_active',exact=True)
+    while not metric.is_visible() and page.get_by_role('button',name='Next children',exact=True).is_enabled():
+        page.get_by_role('button',name='Next children',exact=True).click()
+    assert metric.is_visible(), 'the bounded counter pages must expose the actual dispatch gauge'
     page.get_by_role('button',name='Inspect source z0_health',exact=True).click()
-    page.locator('#inspect-body summary').click()
+    page.locator('#raw-summary').click()
     page.route('**' + API + 'snapshot', lambda route: route.abort('connectionrefused'))
     last=page.locator('#snapshot-time').inner_text()
     page.get_by_role('button',name='Refresh snapshot',exact=True).click()
@@ -206,7 +207,7 @@ def test_polling_outage_retains_last_known_and_recovers_without_losing_inspectio
     assert page.locator('#snapshot-time').inner_text() == last
     assert 'last-known' in page.locator('#outage-banner').inner_text()
     assert page.locator('#inspect-title').inner_text() == 'z0_health'
-    assert page.locator('#inspect-body details').get_attribute('open') is not None
+    assert page.locator('#inspect-body details.raw').get_attribute('open') is not None
     for title in ('Spatial cockpit','Operations split','Instrument desk'):
         page.get_by_role('tab',name=title,exact=True).click()
         assert 'stale' in page.locator('#snapshot-status').inner_text().lower()
@@ -238,9 +239,9 @@ def test_cold_outage_storage_denial_and_unknowns_remain_usable(chooser_url,brows
     assert page.locator('#workspace [data-source]').count() == 0
     page.get_by_role('tab',name='Instrument desk',exact=True).click()
     page.get_by_role('button',name='Light',exact=True).click()
-    page.get_by_role('button',name='Choose this design',exact=True).click()
+    page.get_by_role('button',name='Save as default view',exact=True).click()
     assert 'storage unavailable' in page.locator('#choice-state').inner_text()
-    assert page.get_by_role('button',name='Download choice',exact=True).is_enabled()
+    assert page.get_by_role('button',name='Download preference',exact=True).is_enabled()
     assert not errors
     page.close()
 
@@ -273,7 +274,7 @@ def test_render_all_six_designs_responsive_without_overflow_or_browser_errors(ch
                 assert page.get_by_role('progressbar').count()==0
                 filename=f'{layout}-{theme}.png' if width==1536 else f'{layout}-{theme}-{width}.png'
                 page.screenshot(path=str(ARTIFACTS/filename),full_page=True)
-                snapshot=page.evaluate('state.snapshot')
+                snapshot=page.request.get(chooser_url+API+'snapshot').json()
                 row={'layout':layout,'theme':theme,'file':filename,'viewport':{'width':width,'height':height},'snapshot_generated_at':snapshot['generated_at'],'geometry':geometry}
                 if width==1536:
                     (ARTIFACTS/f'{layout}-{theme}-snapshot.json').write_text(json.dumps(snapshot,indent=2))
@@ -296,11 +297,11 @@ def test_gallery_links_six_real_captures_to_live_layouts(chooser_url,browser):
     assert page.locator('#gallery img').evaluate_all('(images)=>images.every(i=>i.complete && i.naturalWidth>=1440)')
     for layout,title in [('spatial','Spatial cockpit'),('balanced','Operations split'),('dense','Instrument desk')]:
         for theme in ('dark','light'):
-            page.get_by_role('button',name=f'Open {title} / {theme} live design',exact=True).click()
+            page.get_by_role('button',name=f'Open {title} / {theme} live view',exact=True).click()
             assert page.locator('#workspace').is_visible()
             assert page.locator('#workspace').get_attribute('data-layout')==layout
             assert page.locator('html').get_attribute('data-hud-theme')==theme
-            assert page.locator('#choice-state').inner_text().startswith('Preview only')
+            assert page.locator('#choice-state').inner_text().startswith('All three views available')
             page.get_by_role('button',name='Compare images',exact=True).click()
     page.screenshot(path=str(ARTIFACTS/'gallery.png'),full_page=True)
     response=page.request.get(chooser_url+'/design-chooser/gallery.json')
@@ -331,13 +332,14 @@ def test_group_hierarchy_drilldown_breadcrumbs_and_poll_preservation(chooser_url
     snapshot=open_live(page,chooser_url)
     for title in ('Spatial cockpit','Operations split','Instrument desk'):
         page.get_by_role('tab',name=title,exact=True).click()
-        page.get_by_role('button',name='Browse Kubernetes group',exact=True).click()
-        assert page.locator('#inspect-title').inner_text()=='Kubernetes'
+        page.get_by_role('button',name='Browse Resources group',exact=True).click()
+        assert page.locator('#inspect-title').inner_text()=='Resources'
         assert page.get_by_role('navigation',name='Inspection breadcrumb').is_visible()
-        page.get_by_role('button',name='Inspect group Pods',exact=True).click()
-        assert page.locator('#inspect-body [data-child-kind="pod"]').count()==len(snapshot['k8s']['pods'])
-        first=page.locator('#inspect-body [data-child-kind="pod"]').first
-        name=first.get_attribute('data-child-id')
+        page.get_by_role('button',name='Inspect Kubernetes pods',exact=True).click()
+        assert page.locator('#inspect-body [data-child-id^="pod:"]').count()==min(8,len(snapshot['k8s']['pods']))
+        assert f"of {len(snapshot['k8s']['pods'])} projected children" in page.locator('#child-page').inner_text()
+        first=page.locator('#inspect-body [data-child-id^="pod:"]').first
+        name=first.locator('strong').inner_text()
         first.focus()
         page.keyboard.press('Enter')
         assert page.locator('#inspect-title').inner_text()==name
@@ -348,21 +350,22 @@ def test_group_hierarchy_drilldown_breadcrumbs_and_poll_preservation(chooser_url
         page.wait_for_function('(old)=>document.querySelector("#snapshot-time").textContent !== old',arg=old,timeout=25000)
         assert page.locator('#inspect-title').inner_text()==name
         assert page.locator('#inspect-body .provenance').get_attribute('open') is not None
-        assert 'Pods' in page.get_by_role('navigation',name='Inspection breadcrumb').inner_text()
+        assert 'Kubernetes pods' in page.get_by_role('navigation',name='Inspection breadcrumb').inner_text()
         page.get_by_role('button',name='Back one level',exact=True).click()
-        assert page.locator('#inspect-title').inner_text()=='Pods'
+        assert page.locator('#inspect-title').inner_text()=='Kubernetes pods'
         page.get_by_role('navigation',name='Inspection breadcrumb').get_by_role('button',name='Network',exact=True).click()
-        assert page.locator('#inspect-body [data-child-kind="group"]').count()==7
-        page.get_by_role('button',name='Inspect group Capacity',exact=True).click()
-        assert 'No capacity rows observed' in page.locator('#inspect-body').inner_text()
-        assert 'not observed' in page.locator('#inspect-body').inner_text()
+        assert page.locator('.child-list [data-child-id]').count()==8
+        assert 'of 10 projected children' in page.locator('#child-page').inner_text()
+        page.get_by_role('button',name='Inspect Capacity',exact=True).click()
+        page.get_by_role('button',name='Inspect Capacity offers',exact=True).click()
+        assert 'Optional and unqualified' in page.locator('#inspect-body').inner_text()
         assert 'unknown' in page.locator('#inspect-body').inner_text()
-    page.get_by_role('button',name='Browse Providers group',exact=True).click()
-    latest=page.evaluate('state.snapshot')
+    page.get_by_role('button',name='Browse Capacity group',exact=True).click()
+    latest=page.request.get(chooser_url+API+'snapshot').json()
     if latest['z0_service'].get('providers'):
-        assert page.locator('#inspect-body [data-child-kind="provider"]').count()==len(latest['z0_service']['providers'])
+        assert page.locator('#inspect-body [data-child-id^="provider:"]').count()==len(latest['z0_service']['providers'])
     else:
-        assert 'No provider rows observed' in page.locator('#inspect-body').inner_text()
+        assert 'unknown provider admission rows' in page.locator('#inspect-body').inner_text()
     page.screenshot(path=str(ARTIFACTS/'hierarchy-inspector.png'),full_page=True)
     page.close()
 
@@ -373,7 +376,7 @@ def test_spatial_nodes_are_keyboard_operable_groups(chooser_url,browser):
     page.get_by_role('button',name='Inspect network groups',exact=True).focus()
     page.keyboard.press('Enter')
     assert page.locator('#inspect-title').inner_text()=='Network'
-    for selector,title in [('.orbit-top','Services'),('.orbit-left','Providers'),('.orbit-right','Kubernetes'),('.orbit-bottom','Gaps')]:
+    for selector,title in [('.orbit-top','Services'),('.orbit-left','Capacity'),('.orbit-right','Resources'),('.orbit-bottom','Sources & gaps')]:
         page.locator(selector).click()
         assert page.locator('#inspect-title').inner_text()==title
         assert page.locator('#inspect-body').inner_text()
@@ -441,7 +444,7 @@ def test_keyboard_disclosure_focus_and_pause_survive_refresh(chooser_url,browser
     assert not page.locator('[data-section="Providers"]').evaluate('(el)=>el.open')
     page.keyboard.press('Enter')
     assert page.locator('[data-section="Providers"]').evaluate('(el)=>el.open')
-    page.get_by_role('button',name='Browse Sources group',exact=True).click()
+    page.get_by_role('button',name='Browse Sources & gaps group',exact=True).click()
     page.get_by_role('button',name='Inspect source z0_health',exact=True).last.click()
     raw=page.locator('#inspect-body .raw > summary')
     raw.focus()

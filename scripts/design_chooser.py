@@ -106,6 +106,9 @@ def make_server(port=0, *, upstream='http://127.0.0.1:18743', artifacts=DEFAULT_
                 else:
                     self.reply(404)
                 return
+            if path == '/design-chooser/inspection-model.mjs':
+                self.reply(200, (ROOT.parent / 'plugin/inspection-model.mjs').read_bytes(), 'text/javascript; charset=utf-8')
+                return
             asset = ASSETS.get(path)
             if asset:
                 file, content_type = asset

@@ -32,6 +32,8 @@ The backend uses a fixed GET allowlist against `http://127.0.0.1:11501`:
 /v1/providers
 /metrics
 /v1/observe/outcome/coverage
+/v1/bridge/capabilities
+/v1/observe/outcome/randomized-evidence
 ```
 
 No upstream authentication, credentials, cookies, redirects, proxies, refresh routes, POSTs or inference calls. It never reads raw receipt JSONL, credential configuration, quota ledgers, transcripts or AgentsView databases. Kubernetes uses only bounded-time `kubectl get` requests against the current context.
@@ -78,7 +80,11 @@ Python unit-test dependencies are in `requirements-test.txt`. Tests import produ
 
 Browser-test dependencies are in `requirements-style-preview-test.txt`; run `STYLE_PREVIEW_ARTIFACTS=/absolute/evidence/path python -m pytest tests/test_style_preview.py -q` for the owned server/browser gate and both-theme responsive screenshots. See [visual lineage, blocked video reference and future integration boundary](docs/style-preview.md).
 
-## Interactive v3 design chooser (local preference only)
+## Integrated v3 dashboard views (ready local artifact)
+
+`python scripts/integrated_chooser.py --port 18747` runs the existing three-layout chooser with this worktree's verified production backend and dependency-free inspection adapter. Ten source groups, bounded paging, keyboard drill/back, latest-known retained detail/provenance, bridge capabilities, outcome windows, evaluation gates and optional existing cluster aggregates are functional. It keeps the recovered visual styles and local-only preference contract; it does not activate the plugin or replace any sibling server. See [integrated operation and verification](docs/integrated-chooser.md).
+
+## Proxy-only v3 design chooser (local preference only)
 
 `python scripts/design_chooser.py --port 18745` serves `/design-chooser/` on loopback, using a fixed same-origin GET proxy to the existing critical-path diagnostic on `127.0.0.1:18743`. It offers three functional pane designs, light/dark themes, compressed groups and keyboard drilldown, source evidence inspection, real captured-image comparison, and local choice persistence/download. It neither changes production layout nor installs a profile. No native browser is opened automatically.
 
@@ -113,6 +119,7 @@ No live profile activation or Zen/native-browser deployment is claimed by the is
 ## Backend overrides
 
 ```text
+COMPANY_OS_CLUSTER_URL            # optional existing local IPv4 aggregate origin
 COMPANY_OS_Z0_URL                 # exact http://127.0.0.1:PORT origin only
 COMPANY_OS_Z0_CAPACITY_SNAPSHOT   # optional local regular file, no symlink
 Z0INT_HOME                       # default capacity source root (~/.z0int)

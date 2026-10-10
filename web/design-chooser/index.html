@@ -2,22 +2,22 @@
 <html lang="en" data-hud-theme="dark">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CompanyOS / design chooser</title>
-  <meta name="description" content="Three CompanyOS pane arrangements over one read-only source. Local preference only; no production layout changes.">
+  <title>CompanyOS / dashboard views</title>
+  <meta name="description" content="Three custom CompanyOS dashboard views over one read-only source. All remain available; defaults are local only.">
   <link rel="icon" href="/style-preview/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/hud-v3.css"><link rel="stylesheet" href="/design-chooser/chooser.css">
-  <script defer src="/design-chooser/chooser.js"></script>
+  <script type="module" src="/design-chooser/chooser.js"></script>
 </head>
 <body class="hud-preview chooser">
 <a class="hud-skip" href="#workspace">Skip to operational panes</a>
 <div class="chooser-shell">
   <header class="masthead">
     <div class="hud-brand"><h1>zer<span class="hud-brand-orbit" aria-label="0"></span></h1><p class="hud-brand-sub">company os</p></div>
-    <div class="mast-title hud-brackets"><span class="hud-label">Design study / v3</span><h2>One source. Three ways to see.</h2></div>
+    <div class="mast-title hud-brackets"><span class="hud-label">Dashboard views / v3</span><h2>One source. Three perspectives.</h2></div>
     <div class="mast-tools"><p class="read-only"><span class="hud-dot"></span> Read-only projection</p><div id="theme-controls"></div></div>
   </header>
   <div class="design-bar"><div id="design-tabs"></div><div id="choice-controls"></div></div>
-  <div class="selection-line"><p id="choice-state" role="status">Preview only. No production layout changes.</p><button id="compare" class="text-button" aria-expanded="false" aria-controls="gallery">Compare images</button></div>
+  <div class="selection-line"><p id="choice-state" role="status">All three views available. No default saved; production unchanged.</p><button id="compare" class="text-button" aria-expanded="false" aria-controls="gallery">Compare images</button></div>
   <section class="projection-heading" aria-label="Observation status">
     <div><p class="hud-label">Operational coverage</p><h2 id="layout-title">Spatial cockpit</h2><p id="layout-description">Orient around sources. Inspect without losing the map.</p></div>
     <div class="snapshot-meta"><p id="snapshot-status" role="status">Connecting to the existing source</p><p id="snapshot-time">No snapshot observed yet</p><div id="refresh-controls"></div></div>
@@ -26,7 +26,7 @@
   <main id="workspace" tabindex="-1" data-layout="spatial" data-loaded="false"><div class="loading hud-brackets">Retrieving the existing read-only snapshot. Unknowns will remain unknown.</div></main>
   <section id="gallery" hidden></section>
   <footer class="chooser-footer"><p>CompanyOS projects evidence. It does not dispatch, approve, reserve quota or qualify behavior.</p><a href="https://github.com/kvnloo/company-os/issues/5" target="_blank" rel="noreferrer">Design reference / issue 5 ↗</a><a href="/api/plugins/company-os/snapshot" target="_blank" rel="noreferrer">Read snapshot JSON ↗</a></footer>
-  <details class="reference-notes"><summary>Visual lineage & reading this screen</summary><p>Recovered v3 IBM Plex type, open brackets, dotted rings and light/dark tokens. The attached WOLFSUITE / NORTH STAR clip contributes its split overview and dense row hierarchy, not its numbers. Rings are a source index, not progress. Snapshot generation, source check time and upstream observation time are different. A response hash is not a deployed revision. Original clip creator is not established.</p><p><a href="https://github.com/user-attachments/assets/18dc5eb2-e513-4486-a33b-5937f8d176ef" target="_blank" rel="noreferrer">Exact reference clip ↗</a> / inspected frames: 0.0s, 7.5s, 14.5s.</p></details>
+  <details class="reference-notes"><summary>Visual lineage & reading this screen</summary><p>All three custom dashboard views remain available. Switching a view preserves evidence context; saving a default only sets this browser’s preference. Conversational scenes, voice and meeting sharing remain proposed, not enabled. This view neither listens nor publishes.</p><p>Recovered v3 IBM Plex type, open brackets, dotted rings and light/dark tokens. The attached WOLFSUITE / NORTH STAR clip contributes its split overview and dense row hierarchy, not its numbers. Rings are a source index, not progress. Snapshot generation, source check time and upstream observation time are different. A response hash is not a deployed revision. Original clip creator is not established.</p><p><a href="https://github.com/user-attachments/assets/18dc5eb2-e513-4486-a33b-5937f8d176ef" target="_blank" rel="noreferrer">Exact reference clip ↗</a> / inspected frames: 0.0s, 7.5s, 14.5s.</p></details>
   <noscript><p>JavaScript is required for source retrieval and selection. No operational data is shown without it.</p></noscript>
 </div>
 </body>
