@@ -78,6 +78,12 @@ Python unit-test dependencies are in `requirements-test.txt`. Tests import produ
 
 Browser-test dependencies are in `requirements-style-preview-test.txt`; run `STYLE_PREVIEW_ARTIFACTS=/absolute/evidence/path python -m pytest tests/test_style_preview.py -q` for the owned server/browser gate and both-theme responsive screenshots. See [visual lineage, blocked video reference and future integration boundary](docs/style-preview.md).
 
+## Interactive v3 design chooser (local preference only)
+
+`python scripts/design_chooser.py --port 18745` serves `/design-chooser/` on loopback, using a fixed same-origin GET proxy to the existing critical-path diagnostic on `127.0.0.1:18743`. It offers three functional pane designs, light/dark themes, compressed groups and keyboard drilldown, source evidence inspection, real captured-image comparison, and local choice persistence/download. It neither changes production layout nor installs a profile. No native browser is opened automatically.
+
+Run `python -m pytest tests/test_design_chooser.py -q` with the real backend available for browser acceptance and six-theme/layout captures. See [operation, hierarchy, visual reference and verification](docs/design-chooser.md). This newer chooser retrieved the actual issue #5 attachment and supersedes the historical missing-attachment note in the static preview report.
+
 ## Isolated live browser/API diagnostic
 
 This does **not** start the full Hermes server, change profiles, link/install the plugin, refresh credentials, open a native browser, or restart a service. It bundles the installed Hermes **loader, registry, PluginPage and fetchJSON** into a minimal owned loopback host, mounts the production router, and consumes existing live GET sources.
