@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import http.client
+import ipaddress
 import re
 from urllib.parse import urlsplit
 import json
@@ -69,7 +70,7 @@ def _alias(v):
     return "ref-" + hashlib.sha256(str(v).encode()).hexdigest()[:16]
 
 
-def _project(value, schema, depth=0):
+def _project(value, schema, depth=0) -> Any:
     """Closed recursive shape; no unknown keys or arbitrary string values."""
     if depth > 8:
         return None
@@ -299,12 +300,50 @@ def _fleet(control: dict[str, Any] | None, rows: list[dict[str, Any]]) -> list[d
 READ_ROUTES = {
     "health": "/healthz", "readiness": "/readyz", "providers": "/v1/providers",
     "metrics": "/metrics", "outcome_coverage": "/v1/observe/outcome/coverage",
+    "bridge_capabilities": "/v1/bridge/capabilities",
+    "randomized_evidence": "/v1/observe/outcome/randomized-evidence",
 }
 SOURCE_NAMES = {"health": "z0_health", "readiness": "z0_readiness", "providers": "z0_providers", "metrics": "z0_metrics", "outcome_coverage": "z0_outcomes"}
+SOURCE_NAMES["bridge_capabilities"] = "z0_bridge"
+SOURCE_NAMES["randomized_evidence"] = "z0_evaluation"
+SOURCE_SCOPES = {
+    "health": "service_process_only", "readiness": "dispatch_readiness_only",
+    "providers": "service_provider_admission_not_quota", "metrics": "service_process_counters_not_economics",
+    "outcome_coverage": "agentweb_registered_expectations_only",
+    "bridge_capabilities": "advertised_protocol_not_consumer_use",
+    "randomized_evidence": "agentweb_registered_experiments_only",
+}
+WINDOWS = ("1h", "24h", "7d")
+COVERAGE_REASONS = ("not_required", "insufficient_mature_sample", "joined_coverage_below_threshold",
+                    "complete_coverage_below_threshold", "early_or_invalid_observation_present")
+REVIEW_REASONS = ("outcome_coverage_gate_closed", "invalid_or_noncausal_assignment_present",
+                  "varying_assignment_probability_not_supported", "unit_assigned_to_multiple_arms",
+                  "candidate_treatment_not_stable", "reference_treatment_not_stable", "minimum_live_sample_not_met",
+                  "candidate_minimum_sample_not_met", "reference_minimum_sample_not_met")
+
+
+def _ratio(value):
+    n = _number(value)
+    return n if n is not None and n <= 1 else None
+
+
+def _safe_outcome_coverage(data):
+    if data.get("schema") != "z0int.agentweb_outcome_coverage.v1":
+        raise ValueError("unsupported_coverage_schema")
+    boolean = lambda v: v if type(v) is bool else None
+    window = {**{k: _number for k in ("registered", "eligible", "observed", "complete", "partial", "missing", "early_or_invalid")},
+              "coverage": _ratio, "complete_coverage": _ratio, "passes": boolean,
+              "reasons": [_enum(*COVERAGE_REASONS)]}
+    return {"schema": "z0int.agentweb_outcome_coverage.v1", **_project(data, {
+        "as_of": _stamp, "expectations": _number, "observations": _number, "orphan_observations": _number,
+        "required_windows": [_enum(*WINDOWS)], "by_window": {w: window for w in WINDOWS},
+        "policy": {"min_eligible_per_window": _number, "min_coverage": _ratio, "min_complete_coverage": _ratio},
+        "promotion_gate": {"eligible": boolean, "causal_quality_proven": boolean, "necessary_not_sufficient": boolean,
+                           "reasons": [_enum("no_required_expectations", *(f"{w}:{r}" for w in WINDOWS for r in COVERAGE_REASONS))]}})}
 
 
 def _get_readonly(origin, path):
-    if path not in READ_ROUTES.values():
+    if path not in (*READ_ROUTES.values(), "/api/v1/cluster/status"):
         raise ValueError("route_not_allowed")
     conn = http.client.HTTPConnection(origin.hostname, origin.port or 80, timeout=2)
     try:
@@ -319,7 +358,7 @@ def _get_readonly(origin, path):
         conn.close()
 
 
-def _safe_metrics(text):
+def _safe_metrics(text, limit: int | None = MAX_ROWS):
     # Only owner-defined metric names and typed labels, never arbitrary labels.
     names = {"z0intelligence_" + n for n in (
         "dispatch_active", "dispatch_peak", "dispatch_new_total", "dispatch_replayed_total",
@@ -340,7 +379,7 @@ def _safe_metrics(text):
         except ValueError:
             continue
         rows.append({"metric": name, "provider": provider, "http_status": int(status) if status else None, "value": value})
-    return rows[:MAX_ROWS]
+    return rows[:limit]
 
 
 def _safe_live(kind, raw):
@@ -350,6 +389,44 @@ def _safe_live(kind, raw):
     if not isinstance(data, dict):
         raise ValueError("invalid_response")
     boolean = lambda v: v if type(v) is bool else None
+    if kind == "randomized_evidence":
+        if data.get("schema") != "z0int.agentweb_randomized_outcome_evidence.v1" or not isinstance(data.get("experiments"), dict):
+            raise ValueError("unsupported_evaluation_schema")
+        out = _project(data, {"as_of": _stamp, "review_ready_any": boolean, "human_review_required": boolean,
+                             "auto_promotion_allowed": boolean, "causal_quality_proven": boolean,
+                             "policy": {"min_total_live_units": _number, "min_complete_units_per_arm": _number}})
+        out["schema"] = "z0int.agentweb_randomized_outcome_evidence.v1"
+        out["experiments"] = [
+            {"experiment_ref": _alias(key), **_project(row, {
+                "registered_assignments": _number, "valid_randomized_assignments": _number,
+                "assignment_probability": _ratio, "arms": {a: {"units": _number} for a in ("candidate", "reference")},
+                "review_ready": boolean, "human_review_required": boolean, "auto_promotion_allowed": boolean,
+                "causal_quality_proven": boolean, "reasons": [_enum(*REVIEW_REASONS)]})}
+            for key, row in itertools.islice(data["experiments"].items(), MAX_ROWS)]
+        out["coverage"] = {"scope": SOURCE_SCOPES[kind], "limit_per_kind": MAX_ROWS,
+                           "returned": len(out["experiments"]), "total": len(data["experiments"]),
+                           "truncated": len(data["experiments"]) > MAX_ROWS,
+                           "omitted": "metric_effects_treatment_hashes_and_free_text"}
+        return out
+    if kind == "bridge_capabilities":
+        if data.get("schema") != "agentweb.z0.bridge.capabilities.v1":
+            raise ValueError("unsupported_bridge_schema")
+        out = {"schema": "agentweb.z0.bridge.capabilities.v1", "execution_permission": False,
+                **_project(data, {
+                    "bridge_protocol_versions": [_enum("agentweb.z0.bridge.v1")],
+                    "active_dispatch_supported": boolean,
+                    "transport": {**{k: _number for k in ("max_request_bytes", "max_active", "socket_backlog", "overload_status", "retry_after_seconds")},
+                                  "queue_policy": _enum("reject_excess"), "overload_execution": _enum("not_started")},
+                    "endpoints": [{"path": _enum("/v1/plan", "/v1/intelligence", "/v1/experimental/choice", "/v1/experimental/noul"),
+                                   "kind": _enum("plan", "dispatch", "decide"), "modes": [_enum("shadow", "active")],
+                                   "physical_execution": boolean, "experimental": boolean}],
+                })}
+        total = len(data["endpoints"]) if isinstance(data.get("endpoints"), list) else None
+        out["coverage"] = {"scope": SOURCE_SCOPES[kind], "limit_per_kind": MAX_ROWS,
+                           "returned": len(out["endpoints"]), "total": total,
+                           "truncated": total > MAX_ROWS if total is not None else None,
+                           "omitted": "unknown_enums_and_unallowlisted_fields"}
+        return out
     if kind == "health":
         if type(data.get("ok")) is not bool:
             raise ValueError("invalid_health")
@@ -370,12 +447,7 @@ def _safe_live(kind, raw):
             "cooldown_until": _number, "last_http_status": _number,
             "reason": _enum("healthy", "eligible_unprobed", "unmeasured_cap", "cap_zero", "account_blocked", "funds_exhausted", "cooldown", "inflight_cap")}),
             "quota": {}, "model": None} for p in PROVIDERS if p in providers]
-    if data.get("schema") != "z0int.agentweb_outcome_coverage.v1":
-        raise ValueError("unsupported_coverage_schema")
-    return {"schema": "z0int.agentweb_outcome_coverage.v1", **_project(data, {
-        "as_of": _stamp, "expectations": _number, "observations": _number, "orphan_observations": _number,
-        "promotion_gate": {"eligible": boolean, "causal_quality_proven": boolean, "necessary_not_sufficient": boolean,
-                           "reasons": [_enum("no_required_expectations")]}})}
+    return _safe_outcome_coverage(data)
 
 
 def _z0_live():
@@ -391,17 +463,25 @@ def _z0_live():
         name = SOURCE_NAMES[kind]
         try:
             raw, status = _get_readonly(origin, path)
-            if status not in (200, 503):
+            if status != 200 and not (status == 503 and kind in ("health", "readiness")):
                 raise ValueError("unexpected_http_status")
             value = _safe_live(kind, raw)
             data[kind] = value
             ok = status == 200 and (not isinstance(value, dict) or value.get("ok") is not False)
+            coverage: dict[str, Any] = value.get("coverage", {"scope": SOURCE_SCOPES[kind]}) if isinstance(value, dict) else {"scope": SOURCE_SCOPES[kind]}
+            if kind == "metrics":
+                total = len(_safe_metrics(raw.decode("utf-8"), limit=None))
+                coverage.update(returned=len(value), total=total, limit_per_kind=MAX_ROWS, truncated=total > MAX_ROWS,
+                                omitted="unallowlisted_metric_names_labels_and_malformed_lines")
+            elif kind == "providers":
+                total = len(json.loads(raw)["providers"])
+                coverage.update(returned=len(value), total=total, truncated=len(value) < total, omitted="unallowlisted_provider_names")
             sources[name] = _source("ok" if ok else "degraded", http_status=status,
-                observed_at=value.get("as_of") if isinstance(value, dict) else None,
+                assessed_at=value.get("as_of") if isinstance(value, dict) else None,
                 source_version="sha256:" + hashlib.sha256(raw).hexdigest(),
-                coverage="service_process_only", endpoint=path)
+                coverage=coverage, endpoint=path)
         except Exception:
-            sources[name] = _source("unavailable", reason="read_failed", endpoint=path, coverage="service_process_only")
+            sources[name] = _source("unavailable", reason="read_failed", endpoint=path, coverage=SOURCE_SCOPES[kind])
     return data, sources
 
 
@@ -411,6 +491,45 @@ def _collect(fn, fallback):
     except Exception:
         # Exception messages may contain paths, payloads or credentials.
         return fallback, _source("unavailable", reason="source_failed")
+
+
+def _cluster_live():
+    """Optional existing Hermes aggregate only; never config/tasks/auth routes."""
+    path = "/api/v1/cluster/status"
+    coverage = {"scope": "hermes_cluster_registry_only", "unreported_task_states": "unknown",
+                "independent_outcomes": "not_reported", "task_process_authority_join": "not_reported"}
+    value = os.environ.get("COMPANY_OS_CLUSTER_URL")
+    if not value:
+        return None, _source("unavailable", reason="not_configured", optional=True, endpoint=path, coverage=coverage)
+    try:
+        origin = urlsplit(value)
+        if origin.scheme != "http" or origin.username or origin.password or origin.path or origin.query or origin.fragment:
+            raise ValueError("invalid_local_origin")
+        address = ipaddress.ip_address(origin.hostname or "")
+        _ = origin.port
+        if address.version != 4:
+            raise ValueError("invalid_local_origin")
+        if not address.is_loopback:
+            # Some existing services bind only the host's tailnet interface.
+            # Verify actual local ownership; private ranges alone are not enough.
+            interfaces, error = _run_json(["ip", "-json", "-4", "addr", "show"])
+            local = {row.get("local") for interface in interfaces or [] for row in interface.get("addr_info", [])} if not error else set()
+            if str(address) not in local:
+                raise ValueError("invalid_local_origin")
+    except (ValueError, TypeError, AttributeError):
+        return None, _source("unavailable", reason="invalid_local_origin", endpoint=path, coverage=coverage)
+    try:
+        raw, status = _get_readonly(origin, path)
+        data = json.loads(raw)
+        if status != 200 or not isinstance(data, dict) or data.get("version") != "python-1.0.0" or not isinstance(data.get("tasks_by_status"), dict):
+            raise ValueError("unsupported_cluster_shape")
+        projected = {"cluster_ref": _alias(data.get("cluster_id")), "version": "python-1.0.0",
+                     **_project(data, {**{k: _number for k in ("node_count", "online_nodes", "task_count", "uptime_seconds")},
+                                       "tasks_by_status": {k: _number for k in ("pending", "ready", "running", "completed", "failed")}})}
+        return projected, _source("ok", http_status=status, endpoint=path, coverage=coverage,
+                                  source_version="sha256:" + hashlib.sha256(raw).hexdigest())
+    except Exception:
+        return None, _source("unavailable", reason="read_failed_or_unsupported_shape", endpoint=path, coverage=coverage)
 
 
 def _host_metadata():
@@ -444,10 +563,12 @@ def build_snapshot() -> dict[str, Any]:
     k8s, k8s_source = _collect(_k8s, {"available": False, "pods": [], "nodes": []})
     fleet, process_source = _collect(lambda: (_process_fleet(), _source("ok", observed_at=_now(), coverage="process_presence_only")), [])
     service, service_sources = _z0_live()
+    cluster, cluster_source = _collect(_cluster_live, None)
     host_meta, host_source = _collect(_host_metadata, {"security": {"status": "unknown"}, "disks": {}})
     process_source["source_version"] = "sha256:" + hashlib.sha256(json.dumps(fleet, sort_keys=True).encode()).hexdigest() if process_source.get("status") == "ok" else None
     sources = {
         **service_sources,
+        "hermes_cluster": cluster_source,
         "host_metadata": host_source,
         "processes": process_source, "z0_capacity": capacity_source, "k8s": k8s_source,
         "z0": _source("unavailable", reason="control_episode_read_contract_missing"),
@@ -460,6 +581,7 @@ def build_snapshot() -> dict[str, Any]:
                            "profile_ref": _alias(os.environ.get("HERMES_HOME")), "scope": "server_process_profile"},
         "sources": sources, "fleet": fleet, "capacity": service.get("providers", []), "capacity_plane": capacity_plane,
         "z0_service": service,
+        "hermes_cluster": cluster,
         "economics": _economics([]), "memory": {"runtime_usable": None}, "k8s": k8s,
         **host_meta, "flow": [],
         "control": {"available": False, "schema": None, "stages": [],

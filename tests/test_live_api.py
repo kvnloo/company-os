@@ -6,13 +6,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from test_projection import api
 
-PATHS = ['/healthz', '/readyz', '/v1/providers', '/metrics', '/v1/observe/outcome/coverage']
+PATHS = ['/healthz', '/readyz', '/v1/providers', '/metrics', '/v1/observe/outcome/coverage',
+         '/v1/bridge/capabilities', '/v1/observe/outcome/randomized-evidence']
 
 
 @contextmanager
 def source_server(overrides=None):
     requests = []
     bodies = {
+        '/v1/bridge/capabilities': {'schema':'agentweb.z0.bridge.capabilities.v1','endpoints':[]},
+        '/v1/observe/outcome/randomized-evidence': {'schema':'z0int.agentweb_randomized_outcome_evidence.v1','experiments':{}},
         '/healthz': {'ok': True},
         '/readyz': {'ok': True, 'authority_protocol_version': 3, 'governed_remote_enabled': False, 'governed_remote_ready': False, 'scope': 'PRIVATE_SENTINEL'},
         '/v1/providers': {'providers': {'groq': {'cap': 16, 'inflight': 0, 'available': True, 'reason': 'eligible_unprobed', 'held_tokens': ['PRIVATE_SENTINEL']}, 'PRIVATE_SENTINEL': {'cap': 3}}},
@@ -26,8 +29,9 @@ def source_server(overrides=None):
         def do_GET(self):
             requests.append((self.command, self.path, dict(self.headers)))
             body = bodies.get(self.path, {})
+            status,body = body if isinstance(body,tuple) else (200,body)
             raw = body if isinstance(body, bytes) else (body.encode() if isinstance(body, str) else json.dumps(body).encode())
-            self.send_response(200)
+            self.send_response(status)
             self.send_header('Content-Length', str(len(raw)))
             self.end_headers()
             self.wfile.write(raw)
@@ -71,7 +75,7 @@ def test_live_source_decode_failure_does_not_hide_other_sources(monkeypatch):
     with source_server({'/healthz': b'\xff'}) as (url, requests):
         monkeypatch.setenv('COMPANY_OS_Z0_URL', url)
         data, sources = api._z0_live()
-    assert len(requests) == 5
+    assert len(requests) == len(PATHS)
     assert sources['z0_health']['status'] == 'unavailable'
     assert sources['z0_providers']['status'] == 'ok'
     assert data['providers'][0]['cap'] == 16

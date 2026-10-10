@@ -7,13 +7,20 @@ import {
   SIDEBAR_NAV_AREA,
   PALETTE_AREA
 } from '@hermes/plugin-sdk'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
 const ID = 'company-os'
 const POLL_MS = 5000
 
 const CSS = [
+  '.cos-inspector{margin:18px 28px;border-top:1px solid #343434;font-size:12px;line-height:1.5;letter-spacing:.015em}',
+  '.cos-inspect-head,.cos-breadcrumbs,.cos-pager{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cos-inspect-head{padding:12px 0}.cos-breadcrumbs{flex:1}',
+  '.cos button{font:inherit;color:inherit;background:#101010;border:1px solid #343434;padding:7px 10px;cursor:pointer}.cos button:hover{border-color:#aaa;background:#191919}.cos button:disabled{opacity:.4;cursor:default}.cos button:focus-visible,.cos summary:focus-visible{outline:2px solid #dcdbbd;outline-offset:3px}',
+  '.cos-breadcrumbs button[aria-current]{border-bottom-color:#dcdbbd}.cos-inspect-body{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(330px,1fr);gap:24px}.cos-inspect-body h2{font-size:18px;font-weight:500;margin:8px 0}.cos-inspect-body h3{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#a8a8a8;margin-top:20px}',
+  '.cos-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.cos-card-grid .cos-inspect-card{display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0;padding:13px;position:relative;border-color:#292929}.cos-inspect-card:before{content:"";position:absolute;inset:-1px auto auto -1px;width:9px;height:9px;border-top:1px solid #999;border-left:1px solid #999}.cos-inspect-card strong{font-size:13px}.cos-inspect-card span{font-size:10px;color:#aaa}.cos-inspect-card .cos-card-count{font:14px ui-monospace,monospace;color:#ddd}.cos-card-grid .cos-inspect-card[aria-pressed=true]{border-color:#deddb8;background:#181813}.cos-inspect-card .cos-card-meta{color:#deddb8;margin-top:auto;padding-top:5px}',
+  '.cos-inspector-detail{border-left:1px dotted #444;padding:0 0 12px 22px;min-width:0;max-height:760px;overflow:auto}.cos-inspector-detail p{font-size:12px}.cos-limitation{color:#c4b786;border-left:2px solid #675e3e;padding-left:10px}.cos-provenance{font-size:11px}.cos-provenance details{margin:8px 0}.cos summary{cursor:pointer;overflow-wrap:anywhere}.cos-fields{font-size:11px;margin:8px 0}.cos-field{display:grid;grid-template-columns:minmax(90px,1fr) minmax(0,1.25fr);gap:12px;border-bottom:1px solid #232323;padding:6px 0}.cos-field dt{color:#999}.cos-field dd{margin:0;font-family:ui-monospace,monospace;overflow-wrap:anywhere}.cos-fields details{padding:4px 0}.cos-fields details>.cos-fields{border-left:1px dotted #444;padding-left:12px}.cos-audit{margin:18px 28px 24px;font-size:11px;color:#999}.cos-inspector .cos-muted{font-size:11px;color:#999}',
+  '@media(max-width:950px){.cos-inspect-body{grid-template-columns:1fr}.cos-inspector-detail{border-left:0;border-top:1px dotted #555;padding:16px 0}.cos-top{grid-template-columns:1fr!important;gap:10px}.cos-clock,.cos-meta{text-align:left!important}}@media(max-width:520px){.cos-card-grid{grid-template-columns:1fr}.cos-inspector{margin:12px}.cos-top{padding:14px!important}}',
   '.cos{position:absolute;inset:0;background:#090909;color:#e8e8e8;font-family:ui-sans-serif,system-ui,sans-serif;overflow:auto;letter-spacing:.04em}',
   '.cos *{box-sizing:border-box}',
   '.cos-top{display:grid;grid-template-columns:1fr 1fr 1fr;padding:24px 30px 12px;border-bottom:1px solid #181818;align-items:start}',
@@ -24,43 +31,8 @@ const CSS = [
   '.cos-status{margin-top:8px;font-size:10px;display:flex;align-items:center;gap:7px}',
   '.cos-dot{width:7px;height:7px;border-radius:50%;background:#7dff9a;box-shadow:0 0 12px rgba(125,255,154,.35)}',
   '.cos-dot.warn{background:#f2cf72;box-shadow:none}.cos-dot.bad{background:#ff8c72;box-shadow:none}',
-  '.cos-grid{display:grid;grid-template-columns:230px minmax(460px,1fr) 300px;gap:10px;padding:12px 28px 0}',
-  '.cos-panel{border:1px solid #1e1e1e;background:#0c0c0c;padding:12px;min-height:92px}',
   '.cos-k{font-size:9px;letter-spacing:.24em;color:#8b8b8b;text-transform:uppercase;margin-bottom:8px}',
-  '.cos-row{display:flex;justify-content:space-between;gap:12px;font-size:10px;margin:5px 0;align-items:baseline}',
-  '.cos-val{font-family:ui-monospace,Menlo,monospace;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-  '.cos-muted{color:#666;font-size:9px;line-height:1.45}.cos-ok{color:#7dff9a}.cos-warn{color:#f2cf72}.cos-bad{color:#ff8c72}',
-  '.cos-flow{min-height:380px;border:1px solid #1e1e1e;background:radial-gradient(circle at 50% 34%,#111 0,#0b0b0b 44%,#090909 75%);padding:16px}',
-  '.cos-pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 18px}',
-  '.cos-node{border:1px solid #292929;padding:9px 6px;text-align:center;font-size:9px;letter-spacing:.15em;position:relative}',
-  '.cos-node.live{border-color:#395b40}.cos-node.live:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#7dff9a;right:5px;top:5px;animation:pulse 1.2s infinite}',
-  '@keyframes pulse{0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1.2)}}',
-  '.cos-stream{height:270px;overflow:hidden;border-top:1px solid #171717;padding-top:7px}',
-  '.cos-event{display:grid;grid-template-columns:62px 72px 1fr 105px 58px;gap:7px;padding:5px 1px;border-bottom:1px solid #151515;font-size:9px;font-family:ui-monospace,Menlo,monospace}',
-  '.cos-event:first-child{animation:arrive .45s ease-out}@keyframes arrive{from{opacity:.2;transform:translateY(-5px)}to{opacity:1;transform:none}}',
-  '.cos-tag{border:1px solid #242424;padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-  '.cos-list{max-height:190px;overflow:hidden}.cos-cap{padding:7px 0;border-bottom:1px solid #171717}',
-  '.cos-bar{height:2px;background:#191919;margin-top:5px}.cos-bar>i{display:block;height:100%;background:#7dff9a;opacity:.65}',
-  '.cos-foot{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:10px 28px 22px}',
-  '.cos-metric{border:1px solid #1e1e1e;padding:11px}.cos-num{font-family:ui-monospace,Menlo,monospace;font-size:18px}',
-  '.cos-sources{display:flex;gap:5px;flex-wrap:wrap;min-width:0}.cos-source{border:1px solid #222;padding:3px 5px;font-size:9px;max-width:100%;overflow-wrap:anywhere}.cos-source summary{cursor:pointer}',
-  '.cos-source.ok{border-color:#29442e;color:#7dff9a}.cos-source.degraded,.cos-source.missing{color:#f2cf72}.cos-source.unavailable{color:#777}',
-  '.cos-map{margin:12px 28px 0;border:1px solid #1e1e1e;background:#0a0a0a;padding:14px;overflow:auto;min-height:330px;max-height:460px}',
-  '.cos-map-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:8px}',
-  '.cos-legend{display:flex;gap:10px;flex-wrap:wrap;font-family:ui-monospace,Menlo,monospace;font-size:8px;color:#777}',
-  '.cos-legend-item{display:flex;gap:5px;align-items:center}.cos-kind{display:inline-block;border:1px solid #333;padding:2px 7px;color:#aaa;min-width:42px;text-align:center}',
-  '.cos-kind.action{background:#e8e8e8;color:#111;border-color:#e8e8e8}.cos-kind.out{border-radius:999px}.cos-kind.gap{border-style:dashed;color:#666}',
-  '.cos-tree{min-width:1180px;padding:12px 8px 18px}',
-  '.cos-branch{display:grid;grid-template-columns:190px minmax(0,1fr);column-gap:34px;align-items:center;position:relative}',
-  '.cos-branch.has-children>.cos-tree-card:after{content:"";position:absolute;left:100%;top:50%;width:34px;border-top:1px solid #343434}',
-  '.cos-children{display:flex;flex-direction:column;gap:8px;position:relative;padding:3px 0}',
-  '.cos-children:before{content:"";position:absolute;left:0;top:18px;bottom:18px;border-left:1px solid #343434}',
-  '.cos-child{position:relative;padding-left:24px}.cos-child:before{content:"";position:absolute;left:0;top:50%;width:24px;border-top:1px solid #343434}',
-  '.cos-tree-card{position:relative;border:1px solid #333;background:#0d0d0d;padding:8px 10px;min-height:38px;font-family:ui-monospace,Menlo,monospace;font-size:9px;line-height:1.25;letter-spacing:.06em;color:#d8d8d8}',
-  '.cos-tree-card.view{border-color:#4a4a4a}.cos-tree-card.state{border-color:#353535}.cos-tree-card.action{background:#e8e8e8;color:#111;border-color:#e8e8e8;cursor:pointer;text-align:left;width:100%}',
-  '.cos-tree-card.out{border-radius:999px;text-align:center}.cos-tree-card.gap{border-style:dashed;color:#666}',
-  '.cos-tree-detail{display:block;color:#707070;font-size:8px;margin-top:3px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cos-tree-card.action .cos-tree-detail{color:#555}',
-  '.cos-map-note{font-size:8px;color:#5f5f5f;max-width:430px;line-height:1.45}',
+  '.cos-muted{color:#999;font-size:11px;line-height:1.5}.cos-ok{color:#7dff9a}.cos-warn{color:#f2cf72}.cos-bad{color:#ff8c72}',
 ].join('\n')
 
 const str = v => (v == null || v === '' ? '—' : String(v))
@@ -99,8 +71,6 @@ function firstLimit(q={}){
   return null
 }
 
-function Panel({title,children,id}){return jsxs('div',{id,className:'cos-panel',children:[jsx('div',{className:'cos-k',children:title}),children]})}
-
 function bytes(v){
   if(!numeric(v)) return 'unknown'
   const n=v
@@ -109,230 +79,240 @@ function bytes(v){
   return count(n)+' B'
 }
 
-function resourceDetail(r={}){
-  const bits=[]
-  if(numeric(r.cpu_logical)) bits.push(count(r.cpu_logical)+' cpu')
-  if(numeric(r.ram_available_bytes)) bits.push(bytes(r.ram_available_bytes)+' ram free')
-  const gpu=(r.gpus||[])[0]
-  if(gpu){
-    const name=short(gpu.name||'gpu',16)
-    const free=numeric(gpu.memory_free_bytes)?bytes(gpu.memory_free_bytes)+' vram free':'vram unknown'
-    bits.push(name+' · '+free)
-  }else if(r.gpu_count===0) bits.push('cpu only')
-  return bits.join(' · ')||'resources unknown'
-}
-
-function quotaDetail(row={}){
-  const q=row.quota||{}
-  const rem=firstRemaining(q)
-  if(rem==null) return 'quota unknown'
-  const lim=firstLimit(q)
-  return lim==null?count(rem)+' remaining':count(rem)+' / '+count(lim)+' remaining'
-}
-function resetDetail(row={}){
-  if(numeric(row.reset_at)) return 'reset '+t(Number(row.reset_at))
-  const s=row.time_to_reset
-  if(!numeric(s)) return 'reset unknown'
-  if(s<60) return 'reset in '+Math.max(0,Math.round(s))+'s'
-  if(s<3600) return 'reset in '+Math.max(0,Math.round(s/60))+'m'
-  return 'reset in '+Math.max(0,Math.round(s/3600))+'h'
-}
-
-function chain(nodes){
-  let child=null
-  for(let i=nodes.length-1;i>=0;i--){
-    child={...nodes[i],children:child?[child]:[]}
+// Pure presentation model, reusable by the design chooser. Edges are grouping
+// only: no process -> session -> task identity is inferred in this consumer.
+function buildInspectionModel(s={}){
+  const nodes={}, src=s.sources||{}, service=s.z0_service||{}, cp=s.capacity_plane||{}, k=s.k8s||{}
+  const add=(id,label,parent,sources,meaning,limitation,data={},observedCount=null)=>{
+    const node={id,label,parent,sources,meaning,limitation,data,observedCount,children:[]}
+    nodes[id]=node
+    if(parent)nodes[parent].children.push(id)
+    return node
   }
-  return child
-}
-
-function buildHierarchy(s,currentModel){
-  const cp=s?.capacity_plane||{}
-  const k=s?.k8s||{}
-  const latest=null // No qualified trace/stage read contract yet.
-  const cpHosts=cp.hosts||[]
-  const hosts=cpHosts.length?cpHosts:(k.nodes||[]).map(n=>({
-    host_id:'k8s:'+str(n.name),
-    label:n.name,
-    mode:'kubernetes',
-    status:n.ready===true?'ready':n.ready===false?'not ready':'unknown',
-    resources:{cpu_logical:n.cpu}
-  }))
-  const sessions=cp.sessions||[]
-  const cpOffers=cp.offers||[]
-  const providerOffers=cpOffers.filter(o=>o.origin==='provider')
-  const providers=providerOffers.length?providerOffers:(s?.capacity||[]).map(r=>({
-    offer_id:'provider:'+str(r.provider)+':'+str(r.model),
-    origin:'provider',
-    provider:r.provider,
-    model:r.model,
-    health:r.status||'unknown',
-    quota:r.quota||{}
-  }))
-  const localOffers=cpOffers.filter(o=>o.origin==='host')
-  const leases=cp.leases||[]
-  const fleet=s?.fleet||[]
-  const econ=s?.economics||{}
-  const gaps=Object.entries(s?.sources||{}).filter(([,v])=>v?.status!=='ok')
-
-  const hostNodes=hosts.slice(0,8).map(h=>({
-    key:'host:'+str(h.host_id),
-    label:short(h.label||h.host_id||'host',22),
-    kind:'state',
-    detail:(h.status||'unknown')+(numeric(h.rtt_ms)?' · '+Number(h.rtt_ms).toFixed(1)+' ms':''),
-    children:[
-      {label:'resources',kind:'state',detail:resourceDetail(h.resources||{})},
-      {label:h.mode||'host mode',kind:'out',detail:'capacity origin'}
-    ]
-  }))
-
-  const sessionNodes=sessions.slice(0,8).map(x=>({
-    key:'session:'+str(x.session_id),
-    label:short(x.name||x.runtime||x.session_id||'session',22),
-    kind:'state',
-    detail:short((x.status||'unknown')+' · '+(x.host_id||'host unknown'),34),
-    children:[
-      {label:x.session_sticky===false?'movable':'sticky session',kind:'out',detail:x.migration_allowed?'migration allowed':'migration requires checkpoint'}
-    ]
-  }))
-
-  const providerNodes=providers.slice(0,10).map(o=>({
-    key:'provider:'+str(o.offer_id||o.provider)+':'+str(o.model),
-    label:short(o.provider||'provider',20),
-    kind:'state',
-    detail:short((o.model||'model unknown')+' · '+quotaDetail(o),40),
-    children:[
-      {label:o.health||'health unknown',kind:'out',detail:resetDetail(o)}
-    ]
-  }))
-
-  const localNodes=localOffers.slice(0,6).map(o=>({
-    key:'local:'+str(o.offer_id),
-    label:short(o.actor_id||'local.compute',22),
-    kind:'state',
-    detail:resourceDetail(o.resources||{})
-  }))
-
-  const control=chain([
-    {label:'AODL gate',kind:'gap',detail:'trace-bound authority unobserved'},
-    {label:'semantic candidates',kind:'gap',detail:'trace-bound candidates unobserved'},
-    {label:'capacity placement',kind:'gap',detail:'trace-bound placement unobserved'},
-    {label:'runtime execution',kind:'gap',detail:'process presence is not governed work'},
-    {label:'verification',kind:'gap',detail:'independent outcome unobserved'},
-    {label:'inspect trace',kind:'action',detail:latest?short(latest.trace_id||'latest flow',28):'flow details',target:'cos-flow-detail'}
-  ])
-
-  return {
-    label:'Company OS',
-    kind:'view',
-    detail:'read-only z0 network projection',
-    children:[
-      {
-        label:'fleet',
-        kind:'view',
-        detail:count(fleet.length)+' process/agent rows',
-        children:[
-          {label:'hosts',kind:'view',detail:'showing '+hostNodes.length+' / '+hosts.length+' projected',children:hostNodes.length?hostNodes:[{label:'host inventory',kind:'gap',detail:'not observed'}]},
-          {label:'sessions',kind:'view',detail:'showing '+sessionNodes.length+' / '+sessions.length+' projected',children:sessionNodes.length?sessionNodes:[{label:'Tern session export',kind:'gap',detail:'not observed yet'}]}
-        ]
-      },
-      {
-        label:'capacity',
-        kind:'view',
-        detail:count(cpOffers.length||providers.length)+' offer(s)',
-        children:[
-          {label:'devices',kind:'view',detail:count(localOffers.length)+' local offer(s)',children:localNodes.length?localNodes:[{label:'z0 capacity host offer',kind:'gap',detail:'snapshot not observed yet'}]},
-          {label:'providers',kind:'view',detail:count(providers.length)+' provider/model rows',children:providerNodes.length?providerNodes:[{label:'Kerdoios capacity',kind:'gap',detail:'quota ledger not observed'}]},
-          {label:'placement leases',kind:'gap',detail:leases.length?count(leases.length)+' projected; authority unqualified':'lease / shadow activation unknown'},
-          {label:'inspect capacity',kind:'action',detail:'provider + resource details',target:'cos-capacity-detail'}
-        ]
-      },
-      {
-        label:'intelligence',
-        kind:'view',
-        detail:'semantic capability before placement',
-        children:[
-          {label:'current model',kind:'state',detail:short(currentModel||'unknown',34)},
-          {label:'runtime actors',kind:'state',detail:count(fleet.length)+' observed'},
-          {label:'routing boundary',kind:'out',detail:'z0 semantic → Kerdoios placement'}
-        ]
-      },
-      {label:'control path',kind:'view',detail:'intent → outcome (unjoined)',children:control?[control]:[]},
-      {
-        label:'economics',
-        kind:'view',
-        detail:'Tokenomics projection',
-        children:[
-          {label:'tokens',kind:'state',detail:count(econ.actual_tokens)},
-          {label:'observed cost',kind:'state',detail:money(econ.observed_cost_usd)},
-          {label:'verified',kind:'out',detail:count(econ.verified_events)+' event(s)'}
-        ]
-      },
-      {
-        label:'gaps',
-        kind:gaps.length?'gap':'out',
-        detail:gaps.length?count(gaps.length)+' source gap(s)':'all observed sources healthy',
-        children:gaps.slice(0,8).map(([name,v])=>({
-          key:'gap:'+name,
-          label:name,
-          kind:'gap',
-          detail:short(v?.reason||v?.status||'unknown',36)
-        }))
-      }
-    ]
-  }
-}
-
-function TreeNode({node}){
-  const kids=node?.children||[]
-  const kind=node?.kind||'state'
-  const Tag=kind==='action'?'button':'div'
-  const props={className:'cos-tree-card '+kind}
-  if(kind==='action'){
-    props.type='button'
-    props.onClick=()=>{
-      const el=node.target?document.getElementById(node.target):null
-      if(el) el.scrollIntoView({behavior:'smooth',block:'center'})
+  const group=(id,label,sources,question,limit,data,count)=>add(id,label,'network',sources,question,limit,data,count)
+  const rows=(parent,values,identity,label,sources,meaning,limit)=>{
+    const seen=new Set()
+    for(const row of (values||[]).slice(0,100)){
+      const id=identity(row)
+      if(!id || seen.has(id))continue
+      seen.add(id);add(id,label(row),parent,sources,meaning,limit,row)
     }
   }
-  props.children=jsxs('span',{children:[
-    jsx('span',{children:node?.label||'—'}),
-    node?.detail?jsx('span',{className:'cos-tree-detail',children:node.detail}):null
-  ]})
-  return jsxs('div',{className:'cos-branch '+(kids.length?'has-children':''),children:[
-    jsx(Tag,props),
-    kids.length?jsx('div',{className:'cos-children',children:kids.map((child,i)=>jsx('div',{className:'cos-child',children:jsx(TreeNode,{node:child})},child.key||child.label+'-'+i))}):null
-  ]})
+  add('network','Network',null,['projection'],'What is observable across the local z0 system?',
+      'Representative source groups, not an authoritative topology or global inventory.',s.coverage||{})
+  group('agents','Agents',['processes'],'Which agent processes are present? Process presence is not active work.',
+        'Exact local comm matches only; Python/node-hosted and remote agents may be missing. No session/task join.',
+        s.coverage||{},src.processes?.status==='ok'?(s.fleet||[]).length:null)
+  rows('agents',s.fleet,r=>'process:'+r.pid,r=>(r.harness||'process')+' · pid '+r.pid,['processes'],
+       'Inspect an observed local process.', 'PID can be reused. Process age is not task age; heartbeat, session, trace and governance remain unknown.')
+  add('cluster:nodes','Cluster registry','agents',['hermes_cluster'],'How many nodes are registered with Hermes Cluster?',
+      'A separate registry, not process inventory or proof of active work. No identity join is inferred.',
+      {node_count:s.hermes_cluster?.node_count,online_nodes:s.hermes_cluster?.online_nodes},s.hermes_cluster?.node_count??null)
+  group('services','Services',['z0_health','z0_readiness','z0_bridge','z0_metrics'],
+        'Is the shared service reachable and dispatch-ready? What has its own process counted?',
+        'Health is not active work, a loaded model, successful tasks or deployed quality.')
+  for(const [key,label,source] of [['health','Health','z0_health'],['readiness','Readiness','z0_readiness'],['bridge_capabilities','Bridge capabilities','z0_bridge']]){
+    add('service:'+key,label,'services',[source],'Inspect the existing shared-service GET contract.',
+        'Advertised support/readiness does not establish harness consumption or permission.',service[key]||{})
+  }
+  add('service:metrics','Service counters','services',['z0_metrics'],'Which dispatch/admission counters are observed?',
+      'Process-lifetime counters only; reads can affect connection counters. Not cost, task totals or quality.',{},
+      service.metrics?service.metrics.length:null)
+  rows('service:metrics',service.metrics,r=>'metric:'+r.metric+':'+(r.provider||'')+':'+(r.http_status||''),
+       r=>r.metric.replace('z0intelligence_','')+(r.provider?' · '+r.provider:''),['z0_metrics'],
+       'Inspect one owner-reported counter or gauge and its labels.', 'No inferred savings, rate, completed task or cross-process join.')
+  group('resources','Resources',['host_metadata','k8s','z0_capacity'],
+        'Which storage or workload readiness constraints need attention?',
+        'Current kube context and optional host export are independent inventories, not joined hosts.')
+  for(const [label,data] of Object.entries(s.disks||{}))add('disk:'+label,label+' storage','resources',['host_metadata'],
+        'Inspect free space and pressure at the configured mount.', 'Storage pressure alone says nothing about task or inference quality.',data)
+  add('permissions','Environment permissions','resources',['host_metadata'],'Are environment files writable by other users?',
+      'Metadata-only check; contents and filenames are never exposed. Not a complete security audit.',s.security||{})
+  add('pods','Kubernetes pods','resources',['k8s'],'Which pods are not ready?',
+      'Bounded current-context projection; a running pod is not necessarily ready.',k.coverage||{},k.available?(k.pods||[]).length:null)
+  rows('pods',k.pods,r=>'pod:'+r.namespace+':'+r.name,r=>r.name||'unknown pod',['k8s'],
+       'Inspect pod phase, Ready condition and restart evidence.', 'Opaque names preserve privacy; no task/agent linkage is asserted.')
+  add('kube-nodes','Kubernetes nodes','resources',['k8s'],'Which current-context nodes report Ready?',
+      'Kubernetes node identities are not joined to the optional host export.',k.coverage||{},k.available?(k.nodes||[]).length:null)
+  rows('kube-nodes',k.nodes,r=>r.name?'kube-node:'+r.name:null,r=>r.name,['k8s'],
+       'Inspect the node Ready condition from the existing inventory.', 'Ready is workload-substrate evidence, not model capability or task quality.')
+  add('hosts','Hosts and devices','resources',['z0_capacity'],'Which hosts have observed resources?',
+      'Optional source-owned export; absent export means unknown inventory.',cp.coverage||{},s.capacity_plane?(cp.hosts||[]).length:null)
+  rows('hosts',cp.hosts,r=>r.host_id?'host:'+r.host_id:null,r=>r.label||r.host_id,['z0_capacity'],
+       'Inspect the producer-observed host resource vector.', 'Reachability is not migratability or semantic capability.')
+  add('sessions','Sessions','resources',['z0_capacity'],'Which sessions did the Tern export observe?',
+      'No process/session join is inferred. Sessions stay sticky and non-migratable.',{},s.capacity_plane?(cp.sessions||[]).length:null)
+  rows('sessions',cp.sessions,r=>r.session_id?'session:'+r.session_id:null,r=>r.name||r.session_id,['z0_capacity'],
+       'Inspect producer-reported session state.', 'Attached does not imply working, governed or safely migratable.')
+  group('capacity','Capacity',['z0_providers','z0_capacity'],'What admission headroom is known, separately from quota?',
+        'Provider inflight/cap is not remaining tokens, rate quota, budget, or semantic eligibility.',{},service.providers?service.providers.length:null)
+  rows('capacity',service.providers,r=>'provider:'+r.provider,r=>r.provider,['z0_providers'],
+       'Inspect in-flight admission, cap, cooldown and the source reason.', 'Unprobed availability is not a successful provider call. Quota remains unknown here.')
+  add('offers','Capacity offers','capacity',['z0_capacity'],'Which source-owned capacity offers are published?',
+      'Optional and unqualified export; stale/reset remaining quota is withheld.',cp.coverage||{},s.capacity_plane?(cp.offers||[]).length:null)
+  rows('offers',cp.offers,r=>r.offer_id?'offer:'+r.offer_id:null,r=>r.provider||r.actor_id||r.offer_id,['z0_capacity'],
+       'Inspect dimensional quota/resources and observation time.', 'Different quota dimensions must not be combined into a single remaining score.')
+  add('leases','Placement leases','capacity',['z0_capacity'],'Are placement references observable?',
+      'lease / shadow activation unknown; a placement recommendation grants no execution authority.',{},s.capacity_plane?(cp.leases||[]).length:null)
+  rows('leases',cp.leases,r=>r.placement_id?'lease:'+r.placement_id:null,r=>r.placement_id,['z0_capacity'],
+       'Inspect a producer-owned placement reference.', 'No task or admission is inferred from this optional projection.')
+  group('work','Work & authority',['z0'],'Which task and authority stages are actually joined?',
+        'The inspected shared GET contracts do not expose the #47/#54 selected-work read model.',s.control||{})
+  add('cluster:tasks','Cluster task registry','work',['hermes_cluster'],'What task states does the existing cluster registry report?',
+      'Registry-only counts, not all local work. Completed is not independently verified. Blocked/cancelled states are not reported by this endpoint; do not infer zero.',
+      s.hermes_cluster||{},s.hermes_cluster?.task_count??null)
+  for(const label of ['Objective / tracker','AODL','Placement','Dispatch','Admission','Execution','Verification']){
+    add('stage:'+label,label,'work',['z0'],'Inspect the source requirement for this work stage.',
+        'Unobserved. Requires owner-bound task/trace/attempt, revision and consumer evidence; process health is not authority.',
+        {state:'unknown',next_action:'source-owner read-contract integration; do not synthesize an episode'})
+  }
+  group('cognition','Cognition',['z0_bridge','memory'],'What can the bridge describe, and what consumer use is qualified?',
+        'Protocol support is separate from loaded models, model input, use and independent behavior.',service.bridge_capabilities||{})
+  rows('cognition',service.bridge_capabilities?.endpoints,r=>r.path?'protocol:'+r.path:null,r=>r.path,['z0_bridge'],
+       'Inspect advertised endpoint semantics, without calling it.', 'Shadow mode can still perform physical model execution. CompanyOS never invokes these endpoints.')
+  add('memory','Memory / reuse','cognition',['memory'],'Is useful continuity qualified for this consumer?',
+      'Archive availability, retrieval, model-visible injection, use and verification are separate; no automatic activation.',s.memory||{})
+  group('evidence','Evidence coverage',['z0_outcomes'],'Which expected outcome windows are missing or incomplete?',
+        'AgentWeb registered expectations only, not all z0 work. as_of is assessment time, not latest evidence.',service.outcome_coverage||{},service.outcome_coverage?.expectations??null)
+  for(const w of ['1h','24h','7d'])add('window:'+w,w+' outcome window','evidence',['z0_outcomes'],
+        'Inspect eligible denominator, observed/complete/missing counts and source gate reasons.',
+        'Coverage is necessary, not sufficient for causal quality; a null ratio is not zero.',service.outcome_coverage?.by_window?.[w]||{})
+  group('evaluation','Evaluation',['z0_evaluation'],'Is any registered experiment ready for human review?',
+        'Review readiness is not causal quality, deployment acceptance, or promotion permission.',service.randomized_evidence||{},service.randomized_evidence?.coverage?.total??null)
+  rows('evaluation',service.randomized_evidence?.experiments,r=>r.experiment_ref?'experiment:'+r.experiment_ref:null,r=>r.experiment_ref,['z0_evaluation'],
+       'Inspect source-owned sample gates and review prerequisites.', 'Metric effects, treatment hashes and free-text reasons are intentionally omitted; no global model score.')
+  group('economics','Economics',['tokenomics'],'What measured usage, cost and verified work can be credited?',
+        'Canonical Tokenomics window/join is unavailable; service metrics cannot substitute for it.',s.economics||{})
+  group('sources','Sources & gaps',Object.keys(src).length?Object.keys(src):['projection'],
+        'Which exact input is missing, stale, bounded or only partially qualified?',
+        'Fresh HTTP transport and a response hash do not attest the loaded producer revision.',s.coverage||{},Object.keys(src).length||null)
+  for(const [name,data] of Object.entries(src))add('source:'+name,name,'sources',[name],
+      'Inspect source status, origin, times, revision, coverage and blocker.', 'Availability, freshness, coverage and qualification are independent.',data)
+  const summaries={agents:count(nodes.agents.observedCount)+' process matches',services:'Dispatch readiness '+str(service.readiness?.ok),
+    resources:'Independent host / kube inventories',capacity:count(nodes.capacity.observedCount)+' provider admission rows',
+    work:'Authority join unknown · cluster registry separate',cognition:service.bridge_capabilities?'Protocol advertised · consumer use unqualified':'Protocol not observed · consumer use unknown',
+    evidence:count(nodes.evidence.observedCount)+' registered expectations',evaluation:count(nodes.evaluation.observedCount)+' registered experiments',
+    economics:'Measured cost '+money(s.economics?.observed_cost_usd),sources:count(nodes.sources.observedCount)+' source inputs'}
+  const metricUnits={dispatch_active:'current dispatches',dispatch_peak:'peak concurrent dispatches',provider_inflight:'current provider admissions',
+    provider_cap:'provider admission cap',provider_unhealthy:'unhealthy flag (0 / 1)'}
+  for(const n of Object.values(nodes)){
+    n.summary=summaries[n.id]||(n.observedCount==null?'State / coverage detail':count(n.observedCount)+' observed')
+    if(n.data.metric){
+      const key=n.data.metric.replace('z0intelligence_',''),unit=metricUnits[key]||(key.endsWith('_seconds_sum')?'cumulative seconds':'process-lifetime count')
+      n.summary=count(n.data.value)+' · '+unit
+      n.data={...n.data,unit}
+    }
+  }
+  return {nodes,root:'network'}
 }
 
-function SourceDetails({sources,stale}){
-  return jsx('div',{className:'cos-sources',children:Object.entries(sources||{}).map(([name,v])=>jsxs('details',{className:'cos-source '+(stale?'degraded':str(v?.status)),children:[
-    jsx('summary',{children:name+': '+(stale?'stale (last known)':str(v?.status))+' · '+str(v?.freshness)}),
-    jsx('div',{children:'observed '+t(v?.observed_at)}),
-    jsx('div',{children:'checked '+t(v?.checked_at)}),
-    jsx('div',{children:'source revision '+str(v?.source_version||'unknown')}),
-    jsx('div',{children:'producer revision '+str(v?.producer_revision||'unknown')}),
-    jsx('div',{children:'coverage '+str(typeof v?.coverage==='string'?v.coverage:v?.coverage?.scope||'unknown')}),
-    jsx('div',{children:'truncated '+str(v?.coverage?.truncated)+' · per-kind limit '+count(v?.coverage?.limit_per_kind)}),
-    jsx('div',{children:'blocker '+str(v?.reason||'no source error; qualification separate')})
-  ]},name))})
+function InspectFields({data}){
+  const entries=Object.entries(data||{})
+  if(!entries.length)return jsx('p',{className:'cos-muted',children:'No qualified fields available from this source.'})
+  return jsx('dl',{className:'cos-fields',children:entries.map(([key,value])=>{
+    const label=key.replaceAll('_',' ')
+    if(value!==null && typeof value==='object')return jsx('div',{children:jsxs('details',{children:[
+      jsx('summary',{children:label+' · '+(Array.isArray(value)?value.length+' projected entries':'fields')}),
+      jsx(InspectFields,{data:value})
+    ]})},key)
+    return jsxs('div',{className:'cos-field',children:[jsx('dt',{children:label}),jsx('dd',{children:value==null?'unknown':String(value)})]},key)
+  })})
+}
+
+function InspectProvenance({names,sources,stale,projection}){
+  return jsx('div',{className:'cos-provenance',children:names.map(name=>{
+    const v=name==='projection'?{status:projection?.schema?'readable':'unknown',checked_at:projection?.generated_at,
+      endpoint:'/api/plugins/company-os/snapshot',coverage:projection?.coverage,
+      reason:'presentation_response_not_authoritative_topology'}:sources?.[name]||{}, coverage=v.coverage
+    return jsxs('details',{open:names.length===1,children:[
+      jsx('summary',{children:name+' · '+(stale?'stale / last known':v.status||'unknown')+' · evidence '+(v.freshness||'unknown')}),
+      jsx(InspectFields,{data:{endpoint:v.endpoint||'local metadata / no configured read endpoint',
+        'observed at':t(v.observed_at),'checked at':t(v.checked_at),'assessment at (not last event)':t(v.assessed_at),
+        'source revision':v.source_version||'unknown','producer revision':v.producer_revision||'unknown',
+        coverage:coverage||'unknown',qualification:'not independently established by this consumer',
+        blocker:v.reason||(v.status?'no source read error; qualification remains separate':'source not observed')}})
+    ]},name)
+  })})
+}
+
+function Inspector({snapshot={},stale}){
+  const model=buildInspectionModel(snapshot), nodes=model.nodes
+  const overview=useRef(null), focusTarget=useRef(null)
+  const [viewId,setView]=useState('network'), [selectedId,setSelected]=useState('network')
+  const [last,setLast]=useState(nodes.network), [collapsed,setCollapsed]=useState(false), [offset,setOffset]=useState(0)
+  useEffect(()=>{
+    const current=nodes[selectedId]
+    if(current)setLast({...current,sourceSnapshot:snapshot.sources})
+  },[snapshot,selectedId])
+  useEffect(()=>{
+    if(!focusTarget.current)return
+    const buttons=Array.from(overview.current?.querySelectorAll('[data-node]')||[])
+    const target=buttons.find(button=>button.dataset.node===focusTarget.current)||buttons[0]||overview.current?.querySelector('h2')
+    target?.focus();focusTarget.current=null
+  },[viewId,selectedId])
+  const view=nodes[viewId]||nodes.network, selected=nodes[selectedId]||last, missing=!nodes[selectedId]
+  const size=view.id==='network'?10:8, start=Math.min(offset,Math.max(0,Math.floor((view.children.length-1)/size)*size))
+  const children=view.children.slice(start,start+size), crumbs=[]
+  for(let n=view;n;n=nodes[n.parent])crumbs.unshift(n)
+  const open=id=>{
+    const node=nodes[id];if(!node)return
+    setSelected(id);setLast({...node,sourceSnapshot:snapshot.sources})
+    if(node.children.length){if(viewId!==id)focusTarget.current='first';setView(id);setOffset(0);setCollapsed(false)}
+  }
+  const back=()=>{
+    const parent=selectedId!==view.id?view:nodes[view.parent]
+    if(parent){focusTarget.current=selectedId!==view.id?selectedId:view.id;setView(parent.id);setSelected(parent.id);setLast(parent);setOffset(0);setCollapsed(false)}
+  }
+  const keyboard=event=>{
+    if(event.key==='Escape'||event.key==='ArrowLeft'){event.preventDefault();back()}
+  }
+  return jsxs('section',{className:'cos-inspector',onKeyDown:keyboard,'aria-label':'Network inspector',children:[
+    jsxs('header',{className:'cos-inspect-head',children:[
+      jsx('button',{type:'button',onClick:back,disabled:view.id==='network'&&selectedId==='network',children:'Back'}),
+      jsx('nav',{className:'cos-breadcrumbs','aria-label':'Network breadcrumbs',children:crumbs.map(n=>jsx('button',{
+        type:'button',onClick:()=>open(n.id),'aria-current':n.id===view.id?'location':undefined,children:n.label},n.id))}),
+      jsx('button',{type:'button',onClick:()=>setCollapsed(!collapsed),disabled:!view.children.length,
+        'aria-expanded':!collapsed,children:collapsed?'Expand children':'Collapse children'})
+    ]}),
+    jsxs('div',{className:'cos-inspect-body',children:[
+      jsxs('div',{className:'cos-inspect-overview',ref:overview,children:[
+        jsx('h2',{tabIndex:-1,children:view.label}),
+        jsx('p',{className:'cos-muted',children:'Representative source groups · no inferred task / process joins. Click, Enter or Space to inspect; → drill, ← / Escape back.'}),
+        jsx('div',{className:'cos-card-grid',children:collapsed?null:children.map(id=>{
+          const node=nodes[id], inputs=node.sources.map(n=>snapshot.sources?.[n]), readable=inputs.filter(v=>v&&['ok','degraded'].includes(v.status)).length
+          return jsxs('button',{type:'button',className:'cos-inspect-card','data-node':id,'aria-pressed':selectedId===id,
+            onClick:()=>open(id),onKeyDown:e=>{if(e.key==='ArrowRight'){e.preventDefault();open(id)}},children:[
+            jsx('strong',{children:node.label}),
+            jsx('span',{className:'cos-card-count',children:node.summary}),
+            jsx('span',{children:stale?'stale / last known':readable+' / '+inputs.length+' sources readable · quality unqualified'}),
+            jsx('span',{className:'cos-card-meaning',children:node.meaning}),
+            jsx('span',{className:'cos-card-meta',children:node.children.length?node.children.length+' projected children →':'Inspect source detail →'})
+          ]},id)
+        })}),
+        jsx('p',{className:'cos-muted',children:collapsed?'Children collapsed. Detail selection is retained.':view.children.length?
+          'Showing '+(start+1)+'–'+Math.min(start+size,view.children.length)+' / '+view.children.length+' projected children; bounded by source coverage, not global totals.':'No projected children. Read the source limitation in detail.'}),
+        view.children.length>size?jsxs('div',{className:'cos-pager',children:[
+          jsx('button',{type:'button',disabled:collapsed||start===0,onClick:()=>setOffset(Math.max(0,start-size)),children:'Previous children'}),
+          jsx('button',{type:'button',disabled:collapsed||start+size>=view.children.length,onClick:()=>setOffset(start+size),children:'Next children'})
+        ]}):null
+      ]}),
+      jsxs('aside',{className:'cos-inspector-detail','data-selected':selectedId,'aria-label':'Selected node detail',children:[
+        jsx('div',{className:'cos-k',children:'Selected · read-only inspection'}),jsx('h2',{children:selected.label}),
+        missing?jsx('p',{className:'cos-warn',role:'status',children:'No longer in latest projection. Last known selection retained; disappearance is not proof of completion.'}):null,
+        stale?jsx('p',{className:'cos-warn',role:'status',children:'API stale / unavailable. These are last known values, not current state.'}):null,
+        jsx('p',{children:selected.meaning}),jsx('p',{className:'cos-limitation',children:selected.limitation}),
+        jsx('h3',{children:'Provenance & freshness'}),
+        jsx(InspectProvenance,{names:selected.sources,sources:missing?selected.sourceSnapshot:snapshot.sources,stale:stale||missing,projection:snapshot}),
+        jsx('h3',{children:'Bounded source fields'}),jsx(InspectFields,{data:selected.data})
+      ]})
+    ]})
+  ]})
 }
 
 function Hud({ctx}){
-  const model=null // Both hosts share only the sanitized API projection.
   const [s,err]=useProjection(ctx)
-  const fleet=s?.fleet||[]
-  const flow=[] // Historical receipts cannot certify stages.
-  const caps=s?.capacity||[]
-  const k=s?.k8s||{}
-  const mem=s?.memory||{}
-  const econ=s?.economics||{}
-  const disks=s?.disks||{}
-  const security=s?.security||{}
   const stale=Boolean(err || (numeric(s?.generated_at) && Date.now()/1000-s.generated_at>30))
   const status=stale?'stale — API unavailable':(s?.status||'loading')
-  const hierarchy=buildHierarchy(s||{},model)
-
   return jsxs('div',{className:'cos',children:[
     jsx('style',{children:CSS}),
     jsxs('div',{className:'cos-top',children:[
@@ -344,94 +324,12 @@ function Hud({ctx}){
       jsxs('div',{className:'cos-clock',children:[jsx('div',{children:'snapshot '+t(s?.generated_at)}),jsx('div',{className:'cos-sub',children:'coverage · '+str(s?.coverage?.scope||'unknown')})]}),
       jsxs('div',{className:'cos-meta',children:[jsx('div',{children:'source revision '+short(s?.implementation?.content_sha256,16)}),jsx('div',{children:'consumer: Hermes CompanyOS'}),jsx('div',{children:'No dispatch · no inference · no mutations'})]})
     ]}),
-    jsxs('div',{className:'cos-map',children:[
-      jsxs('div',{className:'cos-map-head',children:[
-        jsxs('div',{children:[
-          jsx('div',{className:'cos-k',children:'network hierarchy'}),
-          jsx('div',{className:'cos-map-note',children:'Every box is a view, observed state, UI-only action, outcome, or explicit gap. CompanyOS remains read-only; placement and execution authority stay in z0/Kerdoios/runtimes.'})
-        ]}),
-        jsx('div',{className:'cos-legend',children:[
-          ['view','a page / branch'],
-          ['state','what it can be in'],
-          ['action','UI drill-down only'],
-          ['out','observed output'],
-          ['gap','not observed yet']
-        ].map(([kind,label])=>jsxs('span',{className:'cos-legend-item',children:[
-          jsx('span',{className:'cos-kind '+kind,children:kind}),
-          jsx('span',{children:label})
-        ]},kind))})
-      ]}),
-      jsx('div',{className:'cos-tree',children:jsx(TreeNode,{node:hierarchy})})
-    ]}),
-    jsxs('div',{className:'cos-grid',children:[
-      jsxs('div',{children:[
-        jsx(Panel,{title:'fleet',children:jsxs('div',{children:[
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'process presence (not workers)'}),jsx('span',{className:'cos-val',children:s?.sources?.processes?.status==='ok'?count(fleet.length):'unknown'})]}),
-          s?.sources?.processes?.status!=='ok'?jsx('div',{className:'cos-muted',children:'process source unavailable; empty rows are not measured zero'}):null,
-          fleet.slice(0,8).map((a,i)=>jsxs('div',{className:'cos-row',children:[
-            jsx('span',{children:short(a.harness||a.name||a.capability||'agent',14)}),
-            jsx('span',{className:'cos-val cos-warn',title:'session / trace / task / heartbeat unknown',children:'pid '+str(a.pid)+' · '+(stale?'stale':str(a.status))})
-          ]},a.trace_id||a.pid||i)),
-          jsx('div',{className:'cos-muted',children:'Showing '+Math.min(8,fleet.length)+' / '+fleet.length+' local matches. Governed / session / trace / task / heartbeat: unknown. Process age is not work age.'})
-        ]})}),
-        jsx('div',{style:{height:10}}),
-        jsx(Panel,{title:'substrate',children:jsxs('div',{children:[
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'k8s nodes'}),jsx('span',{className:'cos-val',children:k.available?count((k.nodes||[]).length):'unknown'})]}),
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'pods'}),jsx('span',{className:'cos-val',children:k.available?count((k.pods||[]).length):'unknown'})]}),
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'workload readiness'}),jsx('span',{className:'cos-val cos-warn',children:stale?'stale':k.ready===true?'ready':k.ready===false?'not ready':'unknown'})]}),
-          jsx('details',{children:[jsx('summary',{children:'inspect pods'}),(k.pods||[]).map((p,i)=>jsx('div',{className:'cos-muted',children:str(p.name)+' · '+str(p.phase)+' · ready '+str(p.workload_ready)+' · restarts '+count(p.restarts)},i))]}),
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'memory runtime'}),jsx('span',{className:'cos-val cos-warn',children:mem.runtime_usable===true?'qualified':mem.runtime_usable===false?'unavailable':'unknown'})]}),
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'sessions'}),jsx('span',{className:'cos-val',children:count(mem.sessions)})]}),
-          mem.home_symlink?jsx('div',{className:'cos-muted cos-warn',children:'AgentsView root is symlink → '+short(mem.symlink_target,30)}):null
-        ]})})
-      ]}),
-      jsxs('div',{id:'cos-flow-detail',className:'cos-flow',children:[
-        jsx('div',{className:'cos-k',children:'data flow'}),
-        jsx('div',{className:'cos-pipe',children:['AODL','PLACE','DISPATCH','ADMIT','EXEC','VERIFY'].map(x=>jsx('div',{className:'cos-node',children:x+' · unknown'},x))}),
-        jsx('div',{className:'cos-muted',children:'Missing source-owned control / episode join. Next: qualify the existing z0 #47 / #54 read contract; do not create a producer here.'}),
-        jsx('div',{className:'cos-muted',children:'Memory / reuse / shadow activation and independent behavior are unqualified. Branch implementation and CI are not deployed quality.'}),
-        jsx('details',{className:'cos-muted',children:[
-          jsx('summary',{children:'Qualification gaps — audit context, not live deployment'}),
-          jsx('div',{children:'2026-10-10 audit: #137 source 6770954cf42615ab5bdb2699115acb809580594d has native delivery, but behavioral FAIL / DISCARD; memory/harness bindings are absent live.'}),
-          jsx('div',{children:'#149 / #150 are stacked receipt-integrity branches, not master or deployed acceptance. Audited runtime: 4de1aa962cf4c9a19b18a6120ea27309b908da65, dirty. Current loaded revision is unknown to this read contract.'}),
-          jsx('div',{children:'Next: source owners reconcile the existing stack and independently qualify behavior. Do not activate memory/shadow or infer quality from green CI.'})
-        ]}),
-        jsx('div',{className:'cos-row',children:'Dispatch readiness: '+str(s?.z0_service?.readiness?.ok)+' · governed remote ready: '+str(s?.z0_service?.readiness?.governed_remote_ready)}),
-        jsx('div',{className:'cos-row',children:'Outcome expectations: '+count(s?.z0_service?.outcome_coverage?.expectations)+' · causal quality: '+str(s?.z0_service?.outcome_coverage?.promotion_gate?.causal_quality_proven)}),
-        jsx('details',{children:[jsx('summary',{children:'inspect service metrics (not economics)'}),...(s?.z0_service?.metrics||[]).map((m,i)=>jsx('div',{className:'cos-muted',children:m.metric+' '+str(m.provider)+' '+count(m.value)},i))]}),
-        jsx('div',{className:'cos-stream',children:flow.slice(0,13).map((e,i)=>jsxs('div',{className:'cos-event',children:[
-          jsx('span',{children:t(e.ts)}),
-          jsx('span',{className:'cos-tag',children:short(e.harness||'—',11)}),
-          jsx('span',{children:short(e.capability||e.trace_id||'event',31)}),
-          jsx('span',{children:short((e.provider||'')+(e.model?' / '+e.model:''),19)}),
-          jsx('span',{className:e.verified===true?'cos-ok':cls(e.status),children:e.verified===true?'verified':short(e.status||'seen',9)})
-        ]},(e.trace_id||'e')+'-'+i))})
-      ]}),
-      jsxs('div',{children:[
-        jsx(Panel,{id:'cos-capacity-detail',title:'provider capacity',children:jsxs('div',{children:[
-          caps.slice(0,9).map((r,i)=>{const rem=firstRemaining(r.quota||{}),lim=firstLimit(r.quota||{}),pct=rem!=null&&lim>0?Math.max(0,Math.min(100,rem/lim*100)):0;return jsxs('div',{className:'cos-cap',children:[
-            jsxs('div',{className:'cos-row',children:[jsx('span',{children:short(r.provider||'provider',13)}),jsx('span',{className:'cos-val',children:rem==null?'unknown':count(rem)})]}),
-            jsx('div',{className:'cos-muted',children:'inflight '+count(r.inflight)+' / cap '+count(r.cap)+' · '+str(r.reason)+' · quota unknown'}),
-            jsx('div',{className:'cos-bar',children:jsx('i',{style:{width:pct+'%'}})})
-          ]},(r.provider||'p')+'-'+(r.model||i))}),
-          caps.length===0?jsx('div',{className:'cos-muted',children:'No provider status observed; quota unknown'}):null
-        ]})}),
-        jsx('div',{style:{height:10}}),
-        jsx(Panel,{title:'source health',children:jsxs('div',{children:[
-          jsx(SourceDetails,{sources:s?.sources,stale}),
-          disks.home?jsx('div',{className:'cos-row',children:[jsx('span',{children:'home free'}),jsx('span',{className:'cos-val '+cls(disks.home.status),children:count(disks.home.free_pct)+(numeric(disks.home.free_pct)?'%':'')})]}):null,
-          disks.data?jsx('div',{className:'cos-row',children:[jsx('span',{children:'data free'}),jsx('span',{className:'cos-val '+cls(disks.data.status),children:count(disks.data.free_pct)+(numeric(disks.data.free_pct)?'%':'')})]}):null,
-          jsx('div',{className:'cos-row',children:[jsx('span',{children:'env security'}),jsx('span',{className:'cos-val '+cls(security.status),children:security.status==='critical'?'critical ('+count(security.unsafe_count)+')':str(security.status||'unknown')})]}),
-          (security.unsafe_files||[]).slice(0,3).map((f,i)=>jsx('div',{className:'cos-muted cos-bad',children:short(f.file,26)+' mode '+str(f.mode)},'sec-'+i))
-        ]})})
-      ]})
-    ]}),
-    jsxs('div',{className:'cos-foot',children:[
-      jsx('div',{className:'cos-metric',children:jsxs('div',{children:[jsx('div',{className:'cos-k',children:'tokens observed'}),jsx('div',{className:'cos-num',children:count(econ.actual_tokens)})]})}),
-      jsx('div',{className:'cos-metric',children:jsxs('div',{children:[jsx('div',{className:'cos-k',children:'cached input'}),jsx('div',{className:'cos-num',children:count(econ.cached_input_tokens)})]})}),
-      jsx('div',{className:'cos-metric',children:jsxs('div',{children:[jsx('div',{className:'cos-k',children:'observed cost'}),jsx('div',{className:'cos-num',children:money(econ.observed_cost_usd)})]})}),
-      jsx('div',{className:'cos-metric',children:jsxs('div',{children:[jsx('div',{className:'cos-k',children:'verified'}),jsx('div',{className:'cos-num',children:count(econ.verified_events)})]})}),
-      jsx('div',{className:'cos-metric',children:jsxs('div',{children:[jsx('div',{className:'cos-k',children:'governed events'}),jsx('div',{className:'cos-num',children:count(econ.governed_events)})]})})
+    jsx(Inspector,{snapshot:s||{},stale}),
+    jsxs('details',{className:'cos-audit',children:[
+      jsx('summary',{children:'Qualification gaps — audit context, not live deployment'}),
+      jsx('p',{children:'2026-10-10 source audit: #137 has native delivery but behavioral FAIL / DISCARD; memory/harness bindings are absent live. #149 / #150 receipt-integrity branches are not deployed acceptance. Current loaded producer revision is unknown to this read contract.'}),
+      jsx('p',{children:'Source owners must independently qualify behavior. Do not activate memory/shadow or infer quality from green CI, HTTP health or process presence.'}),
+      s?.sources?.processes?.status!=='ok'?jsx('p',{children:'process source unavailable; empty rows are not measured zero'}):null
     ]})
   ]})
 }

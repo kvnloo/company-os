@@ -5,7 +5,8 @@ Read-only operational projection for Hermes Desktop **and the Hermes browser das
 ## Implemented critical-path prerequisite
 
 - Exact process `comm` matching, including multiword names; presence is **not** governed work, session identity, task age or heartbeat.
-- Source-isolated GET consumption of the existing local z0 service: health, dispatch readiness, providers, service metrics and aggregate outcome coverage.
+- Source-isolated GET consumption of the existing local z0 service: health, dispatch readiness, providers, service metrics, bridge capabilities, outcome windows and randomized-evidence review gates.
+- Optional existing Hermes Cluster aggregate GET: registry nodes and task-state counts, explicitly separate from local process inventory and z0 authority.
 - Kubernetes Ready conditions and restart counts, not inventory-count-as-health; names become opaque references.
 - Optional `z0.capacity.snapshot.v1`, recursively typed/bounded and explicitly **unqualified** while its producer is not qualified.
 - Disk/permission **metadata only**, preserving the existing disk-pressure/security checks without exporting filenames or reading config contents.
@@ -32,21 +33,27 @@ The backend uses a fixed GET allowlist against `http://127.0.0.1:11501`:
 /v1/providers
 /metrics
 /v1/observe/outcome/coverage
+/v1/bridge/capabilities
+/v1/observe/outcome/randomized-evidence
 ```
 
 No upstream authentication, credentials, cookies, redirects, proxies, refresh routes, POSTs or inference calls. It never reads raw receipt JSONL, credential configuration, quota ledgers, transcripts or AgentsView databases. Kubernetes uses only bounded-time `kubectl get` requests against the current context.
 
 ### Truth and privacy contract
 
-Each source exposes `checked_at`, upstream `observed_at`, freshness, source-content SHA-256, producer revision (unknown if the API does not supply it), coverage and a fixed reason code. A response hash identifies bytes; it does **not** prove a loaded Git revision or qualified behavior. HTTP health is service-process health, not model availability or deployment acceptance.
+Each source exposes `checked_at`, upstream `observed_at`, freshness, source-content SHA-256, producer revision (unknown if the API does not supply it), coverage and a fixed reason code. `assessed_at` is the outcome API's assessment time, **not** its last evidence event. A response hash identifies bytes; it does **not** prove a loaded Git revision or qualified behavior. HTTP health is service-process health, not model availability or deployment acceptance.
 
 Source failures are isolated. Unknown numeric values are not coerced to zero; explicit measured zero and false are preserved. Capacity input is limited to 512 KiB, 64 rows per kind and a closed recursive schema. IDs/labels are opaque aliases, enums are closed, arbitrary nested keys/text are discarded. Capacity generation time and filesystem mtime are not observation time. Old/reset quota values cannot masquerade as fresh availability. Sessions remain non-migratable.
 
-Coverage is deliberately `local_partial`. Process projection is capped at 100 matches; the HUD shows 8 with visible counts. Kubernetes/capacity truncation is explicit. The hierarchy scrolls independently and is not a complete-system inventory.
+Coverage is deliberately `local_partial`. The inspector starts with ten representative groups, not a raw tree. Child pages show at most eight projected nodes with count/coverage, click/Enter/Space/Right-arrow drill, selected detail, breadcrumbs/Back/Left-arrow/Escape and expand/collapse. Stable source keys preserve selection through polling. Removed nodes retain the latest successful detail and provenance as **last known**, never proof of completion. Unknown remains distinct from measured zero. Process projection caps at 100 matches; Kubernetes/capacity/metrics/experiment bounds are explicit.
+
+`plugin/inspection-model.mjs` is a generated, dependency-free adapter for the design chooser: `buildInspectionModel(snapshot)` returns `{root,nodes}` with stable `id`, `parent`, `children`, `sources`, `meaning`, `limitation`, `summary`, `observedCount` and bounded `data`. It does no fetching and does not infer joins. Edit the canonical model in `plugin/plugin.js`; the existing build produces both browser and standalone adapters and `--check` prevents drift. [Purpose matrix and source-owner prerequisites](docs/LIVE-WIRING.md).
+
+The optional `COMPANY_OS_CLUSTER_URL` consumes **only** `GET /api/v1/cluster/status`. It is unset by default. Explicit HTTP IPv4 origins must be loopback or a verified address on this host's interfaces; DNS names, remote hosts, credentials, paths, query strings and redirects are rejected. No cluster config, task titles, node names or credentials are read. Its `python-1.0.0` aggregate shape is checked; blocked/cancelled states are unreported, not zero. Cluster completed counts do not imply independent outcomes.
 
 ## Known missing contracts / qualification holds
 
-There is no proven live source-owned unified control/episode read contract in the inspected z0 service. `control.available=false`, `flow=[]`, and the six governed stages stay unknown. **Feature B is held**, not recreated from raw events. Its existing owners are [z0 #47](https://github.com/kvnloo/z0intelligence/issues/47) / [#54](https://github.com/kvnloo/z0intelligence/issues/54). Tokenomics canonical accounting, host/session/trace/task joins, heartbeat/death transitions, remote hosts and qualified archive runtime remain gaps.
+There is no proven live source-owned unified control/episode read contract in the inspected shared z0 GET service or the inspected newer branches' HTTP routes. Existing dispatch authority, task checkpoints, receipt summaries, memory contracts and branch-only wiring **do exist**; they are not absent implementations. `control.available=false`, `flow=[]`, and the governed stages stay unknown until owners expose/qualify that join. The separate live cluster registry is wired without pretending it supplies it. **Feature B is held**, not recreated from raw events. Its existing owners are [z0 #47](https://github.com/kvnloo/z0intelligence/issues/47) / [#54](https://github.com/kvnloo/z0intelligence/issues/54). Tokenomics canonical accounting, host/session/trace/task joins, heartbeat/death transitions, remote hosts and qualified archive runtime remain gaps.
 
 The HUD's expandable **dated audit context** is not a live producer:
 
@@ -81,14 +88,14 @@ Prerequisites: installed Hermes source with its existing Node dependencies (`esb
 ```bash
 HERMES_ROOT=/home/kvn/.hermes/hermes-agent
 PY="$HERMES_ROOT/venv/bin/python"
-ARTIFACTS=/workspace/zer0/data/operations/company-os-recovery/implementation/manual-browser
+ARTIFACTS=/workspace/zer0/data/operations/company-os-recovery/live-wiring/manual-browser
 node scripts/build-browser.mjs --check
 "$PY" scripts/diagnostic.py --hermes-root "$HERMES_ROOT" --artifacts "$ARTIFACTS" --test-browser
 ```
 
-The command binds an OS-assigned loopback port, exercises both production API routes, saves sanitized snapshots, verifies the actual host registration/polling/detail/outage path, captures screenshots and request/error receipts, then stops its owned server/browser. `--chromium /path/to/chromium` overrides the browser binary. The controlled outage intercepts only the test browser's request; no live service is stopped.
+The command delegates to `scripts/test-inspector.py`, binds an OS-assigned loopback port, exercises production API GETs, saves a sanitized live snapshot, verifies actual registration, clicks/keyboard drills, pagination, collapse, polling selection, latest-known removal detail, stale privacy controls and outage handling, then stops its owned server/browser. `--chromium /path/to/chromium` overrides the browser binary. Controlled replacement/removal/outage responses are browser-only fixtures, never live producer receipts. Set `COMPANY_OS_CLUSTER_URL` explicitly in this one diagnostic process to exercise an existing local cluster. No profile configuration is changed.
 
-For manual inspection, omit `--test-browser` and optionally specify `--port 18743`. The command prints the exact URL, stays in the foreground and **does not auto-open** it. Ctrl-C stops it. An occupied explicit port fails rather than attaching to or killing its owner. This unauthenticated diagnostic is loopback-only and not a production deployment.
+For manual inspection, omit `--test-browser` and optionally specify an owned free port (this lane uses `--port 18746`; preserve active 18743/18744/18745). The command prints the exact URL, stays in the foreground and **does not auto-open** it. Ctrl-C stops it. An occupied explicit port fails rather than attaching to or killing its owner. This unauthenticated diagnostic is loopback-only and not a production deployment.
 
 ## Real Hermes integration (owner deployment step)
 
@@ -102,6 +109,7 @@ No live profile activation or Zen/native-browser deployment is claimed by the is
 
 ```text
 COMPANY_OS_Z0_URL                 # exact http://127.0.0.1:PORT origin only
+COMPANY_OS_CLUSTER_URL            # opt-in existing local IPv4 HTTP origin; aggregate GET only
 COMPANY_OS_Z0_CAPACITY_SNAPSHOT   # optional local regular file, no symlink
 Z0INT_HOME                       # default capacity source root (~/.z0int)
 COMPANY_OS_DATA_ROOT              # metadata-only disk mount (default /mnt/zer0models)
