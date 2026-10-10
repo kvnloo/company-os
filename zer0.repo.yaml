@@ -1,0 +1,43 @@
+version: 1
+repo: kvnloo/company-os
+id: company-os
+kind: suite
+summary: Thin read-only Hermes cockpit projecting live host/session state into an operational HUD without becoming a second control plane.
+
+architecture:
+  subsystems:
+    - id: desktop-plugin
+      name: Hermes Desktop plugin
+      kind: presentation
+      summary: Renders the Company OS full-page cockpit inside Hermes Desktop using documented SDK surfaces.
+      paths: [plugin/]
+    - id: host-state-projection
+      name: Host state projection
+      kind: observation
+      summary: Reads host.state and optional session.list to project runtime status without mutating Kanban or external systems.
+      paths: [plugin/, scripts/]
+      depends_on: [desktop-plugin]
+    - id: static-demo
+      name: Static demo surface
+      kind: presentation
+      summary: Mirrors the visual language without claiming demo values are live architecture truth.
+      paths: [web/]
+    - id: design-evidence
+      name: Design evidence
+      kind: evidence
+      summary: Stores architecture stills, inspiration, and jury evidence used to freeze the cockpit visual language.
+      paths: [docs/]
+
+  provides_interfaces: []
+  consumes_interfaces: []
+  produces_representations: []
+  consumes_representations: []
+
+  boundaries:
+    owns: [read-only operational projection, cockpit presentation, local visual preferences]
+    not_here: [Hermes execution authority, Kanban mutation, Linear authority, credential storage]
+
+  evidence:
+    docs: [README.md, docs/]
+    tests: []
+    schemas: []

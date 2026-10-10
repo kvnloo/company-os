@@ -11,6 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install unit test dependencies
+        run: python -m pip install -r requirements-test.txt
+      - name: Check generated browser bundle and real UI modules
+        run: |
+          node scripts/build-browser.mjs --check
+          node --experimental-vm-modules --test tests/test_ui.mjs
+      - name: Check read-only production projection contracts
+        run: python -m pytest tests -q
       - name: Check Desktop plugin syntax
         run: node --check plugin/plugin.js
       - name: Check projection backend syntax

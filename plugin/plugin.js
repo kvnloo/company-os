@@ -3,7 +3,6 @@
  */
 import {
   host,
-  useValue,
   ROUTES_AREA,
   SIDEBAR_NAV_AREA,
   PALETTE_AREA
@@ -12,7 +11,7 @@ import { useEffect, useState } from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
 const ID = 'company-os'
-const POLL_MS = 2000
+const POLL_MS = 5000
 
 const CSS = [
   '.cos{position:absolute;inset:0;background:#090909;color:#e8e8e8;font-family:ui-sans-serif,system-ui,sans-serif;overflow:auto;letter-spacing:.04em}',
@@ -32,7 +31,7 @@ const CSS = [
   '.cos-val{font-family:ui-monospace,Menlo,monospace;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
   '.cos-muted{color:#666;font-size:9px;line-height:1.45}.cos-ok{color:#7dff9a}.cos-warn{color:#f2cf72}.cos-bad{color:#ff8c72}',
   '.cos-flow{min-height:380px;border:1px solid #1e1e1e;background:radial-gradient(circle at 50% 34%,#111 0,#0b0b0b 44%,#090909 75%);padding:16px}',
-  '.cos-pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 18px}',
+  '.cos-pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 18px}',
   '.cos-node{border:1px solid #292929;padding:9px 6px;text-align:center;font-size:9px;letter-spacing:.15em;position:relative}',
   '.cos-node.live{border-color:#395b40}.cos-node.live:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#7dff9a;right:5px;top:5px;animation:pulse 1.2s infinite}',
   '@keyframes pulse{0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1.2)}}',
@@ -44,9 +43,9 @@ const CSS = [
   '.cos-bar{height:2px;background:#191919;margin-top:5px}.cos-bar>i{display:block;height:100%;background:#7dff9a;opacity:.65}',
   '.cos-foot{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:10px 28px 22px}',
   '.cos-metric{border:1px solid #1e1e1e;padding:11px}.cos-num{font-family:ui-monospace,Menlo,monospace;font-size:18px}',
-  '.cos-sources{display:flex;gap:5px;flex-wrap:wrap}.cos-source{border:1px solid #222;padding:3px 5px;font-size:8px;text-transform:uppercase}',
+  '.cos-sources{display:flex;gap:5px;flex-wrap:wrap;min-width:0}.cos-source{border:1px solid #222;padding:3px 5px;font-size:9px;max-width:100%;overflow-wrap:anywhere}.cos-source summary{cursor:pointer}',
   '.cos-source.ok{border-color:#29442e;color:#7dff9a}.cos-source.degraded,.cos-source.missing{color:#f2cf72}.cos-source.unavailable{color:#777}',
-  '.cos-map{margin:12px 28px 0;border:1px solid #1e1e1e;background:#0a0a0a;padding:14px;overflow:auto;min-height:330px}',
+  '.cos-map{margin:12px 28px 0;border:1px solid #1e1e1e;background:#0a0a0a;padding:14px;overflow:auto;min-height:330px;max-height:460px}',
   '.cos-map-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:8px}',
   '.cos-legend{display:flex;gap:10px;flex-wrap:wrap;font-family:ui-monospace,Menlo,monospace;font-size:8px;color:#777}',
   '.cos-legend-item{display:flex;gap:5px;align-items:center}.cos-kind{display:inline-block;border:1px solid #333;padding:2px 7px;color:#aaa;min-width:42px;text-align:center}',
@@ -66,18 +65,21 @@ const CSS = [
 
 const str = v => (v == null || v === '' ? '—' : String(v))
 const short = (v,n=18) => { const s=str(v); return s.length>n ? s.slice(0,n-1)+'…' : s }
-const count = v => Number.isFinite(Number(v)) ? Number(v).toLocaleString() : '—'
-const money = v => Number.isFinite(Number(v)) ? '$'+Number(v).toFixed(Number(v)<1?4:2) : '—'
-function t(v){try{const d=typeof v==='number'&&v<1e12?new Date(v*1000):new Date(v);return d.toLocaleTimeString('en-GB',{hour12:false})}catch{return '—'}}
+const numeric = v => typeof v === 'number' && Number.isFinite(v) && v >= 0
+const count = v => numeric(v) ? v.toLocaleString() : 'unknown'
+const money = v => numeric(v) ? '$'+v.toFixed(v<1?4:2) : 'unknown'
+function t(v){if(v==null||v===''||typeof v==='boolean')return 'unknown';const d=typeof v==='number'&&v<1e12?new Date(v*1000):new Date(v);return Number.isFinite(d.getTime())?d.toISOString():'unknown'}
 function cls(v){return v==='ok'||v==='running'?'cos-ok':v==='failed'||v==='critical'||v==='offline'?'cos-bad':'cos-warn'}
 
 function useProjection(ctx){
   const [snap,setSnap]=useState(null)
   const [err,setErr]=useState(null)
   useEffect(()=>{
-    let alive=true
+    let alive=true, loading=false
     const load=async()=>{
-      try{const next=await ctx.rest('/snapshot');if(alive){setSnap(next);setErr(null)}}catch(e){if(alive)setErr(e?.message||'projection unavailable')}
+      if(loading)return
+      loading=true
+      try{const next=await ctx.rest('/snapshot',{method:'GET',timeoutMs:20000});if(next?.schema!=='company_os.snapshot.v1')throw new Error('schema');if(alive){setSnap(next);setErr(null)}}catch{if(alive)setErr('API unavailable')}finally{loading=false}
     }
     load()
     const cancel=ctx.setInterval(load,POLL_MS)
@@ -87,21 +89,21 @@ function useProjection(ctx){
 }
 
 function firstRemaining(q={}){
-  for(const v of [q.remaining_free_quota,q.remaining_tokens,q.remaining,q.day_tokens_remaining]) if(Number.isFinite(Number(v))) return Number(v)
-  for(const v of Object.values(q.dimensions||{})) if(v&&Number.isFinite(Number(v.remaining))) return Number(v.remaining)
+  for(const v of [q.remaining_free_quota,q.remaining_tokens,q.remaining,q.day_tokens_remaining]) if(numeric(v)) return Number(v)
+  for(const v of Object.values(q.dimensions||{})) if(v&&numeric(v.remaining)) return Number(v.remaining)
   return null
 }
 function firstLimit(q={}){
-  for(const v of [q.limit,q.daily_limit,q.day_tokens_limit]) if(Number.isFinite(Number(v))) return Number(v)
-  for(const v of Object.values(q.dimensions||{})) if(v&&Number.isFinite(Number(v.limit))) return Number(v.limit)
+  for(const v of [q.limit,q.daily_limit,q.day_tokens_limit]) if(numeric(v)) return Number(v)
+  for(const v of Object.values(q.dimensions||{})) if(v&&numeric(v.limit)) return Number(v.limit)
   return null
 }
 
 function Panel({title,children,id}){return jsxs('div',{id,className:'cos-panel',children:[jsx('div',{className:'cos-k',children:title}),children]})}
 
 function bytes(v){
-  const n=Number(v)
-  if(!Number.isFinite(n)) return 'unknown'
+  if(!numeric(v)) return 'unknown'
+  const n=v
   if(n>=1024**3) return (n/1024**3).toFixed(n<10*1024**3?1:0)+' GiB'
   if(n>=1024**2) return (n/1024**2).toFixed(0)+' MiB'
   return count(n)+' B'
@@ -109,14 +111,14 @@ function bytes(v){
 
 function resourceDetail(r={}){
   const bits=[]
-  if(Number.isFinite(Number(r.cpu_logical))) bits.push(count(r.cpu_logical)+' cpu')
-  if(Number.isFinite(Number(r.ram_available_bytes))) bits.push(bytes(r.ram_available_bytes)+' ram free')
+  if(numeric(r.cpu_logical)) bits.push(count(r.cpu_logical)+' cpu')
+  if(numeric(r.ram_available_bytes)) bits.push(bytes(r.ram_available_bytes)+' ram free')
   const gpu=(r.gpus||[])[0]
   if(gpu){
     const name=short(gpu.name||'gpu',16)
-    const free=Number.isFinite(Number(gpu.memory_free_bytes))?bytes(gpu.memory_free_bytes)+' vram free':'vram unknown'
+    const free=numeric(gpu.memory_free_bytes)?bytes(gpu.memory_free_bytes)+' vram free':'vram unknown'
     bits.push(name+' · '+free)
-  }else if(Number(r.gpu_count)===0) bits.push('cpu only')
+  }else if(r.gpu_count===0) bits.push('cpu only')
   return bits.join(' · ')||'resources unknown'
 }
 
@@ -128,9 +130,9 @@ function quotaDetail(row={}){
   return lim==null?count(rem)+' remaining':count(rem)+' / '+count(lim)+' remaining'
 }
 function resetDetail(row={}){
-  if(Number.isFinite(Number(row.reset_at))) return 'reset '+t(Number(row.reset_at))
-  const s=Number(row.time_to_reset)
-  if(!Number.isFinite(s)) return 'reset unknown'
+  if(numeric(row.reset_at)) return 'reset '+t(Number(row.reset_at))
+  const s=row.time_to_reset
+  if(!numeric(s)) return 'reset unknown'
   if(s<60) return 'reset in '+Math.max(0,Math.round(s))+'s'
   if(s<3600) return 'reset in '+Math.max(0,Math.round(s/60))+'m'
   return 'reset in '+Math.max(0,Math.round(s/3600))+'h'
@@ -147,14 +149,13 @@ function chain(nodes){
 function buildHierarchy(s,currentModel){
   const cp=s?.capacity_plane||{}
   const k=s?.k8s||{}
-  const flow=s?.flow||[]
-  const latest=flow[0]
+  const latest=null // No qualified trace/stage read contract yet.
   const cpHosts=cp.hosts||[]
   const hosts=cpHosts.length?cpHosts:(k.nodes||[]).map(n=>({
     host_id:'k8s:'+str(n.name),
     label:n.name,
     mode:'kubernetes',
-    status:n.ready?'online':'not ready',
+    status:n.ready===true?'ready':n.ready===false?'not ready':'unknown',
     resources:{cpu_logical:n.cpu}
   }))
   const sessions=cp.sessions||[]
@@ -178,7 +179,7 @@ function buildHierarchy(s,currentModel){
     key:'host:'+str(h.host_id),
     label:short(h.label||h.host_id||'host',22),
     kind:'state',
-    detail:(h.status||'unknown')+(Number.isFinite(Number(h.rtt_ms))?' · '+Number(h.rtt_ms).toFixed(1)+' ms':''),
+    detail:(h.status||'unknown')+(numeric(h.rtt_ms)?' · '+Number(h.rtt_ms).toFixed(1)+' ms':''),
     children:[
       {label:'resources',kind:'state',detail:resourceDetail(h.resources||{})},
       {label:h.mode||'host mode',kind:'out',detail:'capacity origin'}
@@ -213,11 +214,11 @@ function buildHierarchy(s,currentModel){
   }))
 
   const control=chain([
-    {label:'AODL gate',kind:'state',detail:'legality + authority'},
-    {label:'semantic candidates',kind:'state',detail:'z0intelligence'},
-    {label:'capacity placement',kind:leases.length?'state':'gap',detail:leases.length?count(leases.length)+' lease(s) observed':'no placement lease yet'},
-    {label:'runtime execution',kind:latest?'state':'gap',detail:latest?short(latest.harness||latest.provider||'observed',24):'no execution observed'},
-    {label:'verification',kind:latest?.verified===true?'out':'gap',detail:latest?.verified===true?'verified outcome':'awaiting verified outcome'},
+    {label:'AODL gate',kind:'gap',detail:'trace-bound authority unobserved'},
+    {label:'semantic candidates',kind:'gap',detail:'trace-bound candidates unobserved'},
+    {label:'capacity placement',kind:'gap',detail:'trace-bound placement unobserved'},
+    {label:'runtime execution',kind:'gap',detail:'process presence is not governed work'},
+    {label:'verification',kind:'gap',detail:'independent outcome unobserved'},
     {label:'inspect trace',kind:'action',detail:latest?short(latest.trace_id||'latest flow',28):'flow details',target:'cos-flow-detail'}
   ])
 
@@ -231,8 +232,8 @@ function buildHierarchy(s,currentModel){
         kind:'view',
         detail:count(fleet.length)+' process/agent rows',
         children:[
-          {label:'hosts',kind:'view',detail:count(hosts.length)+' visible',children:hostNodes.length?hostNodes:[{label:'host inventory',kind:'gap',detail:'not observed'}]},
-          {label:'sessions',kind:'view',detail:count(sessions.length)+' Tern-visible',children:sessionNodes.length?sessionNodes:[{label:'Tern session export',kind:'gap',detail:'not observed yet'}]}
+          {label:'hosts',kind:'view',detail:'showing '+hostNodes.length+' / '+hosts.length+' projected',children:hostNodes.length?hostNodes:[{label:'host inventory',kind:'gap',detail:'not observed'}]},
+          {label:'sessions',kind:'view',detail:'showing '+sessionNodes.length+' / '+sessions.length+' projected',children:sessionNodes.length?sessionNodes:[{label:'Tern session export',kind:'gap',detail:'not observed yet'}]}
         ]
       },
       {
@@ -242,7 +243,7 @@ function buildHierarchy(s,currentModel){
         children:[
           {label:'devices',kind:'view',detail:count(localOffers.length)+' local offer(s)',children:localNodes.length?localNodes:[{label:'z0 capacity host offer',kind:'gap',detail:'snapshot not observed yet'}]},
           {label:'providers',kind:'view',detail:count(providers.length)+' provider/model rows',children:providerNodes.length?providerNodes:[{label:'Kerdoios capacity',kind:'gap',detail:'quota ledger not observed'}]},
-          {label:'placement leases',kind:leases.length?'state':'gap',detail:leases.length?count(leases.length)+' active/recent':'shadow only'},
+          {label:'placement leases',kind:'gap',detail:leases.length?count(leases.length)+' projected; authority unqualified':'lease / shadow activation unknown'},
           {label:'inspect capacity',kind:'action',detail:'provider + resource details',target:'cos-capacity-detail'}
         ]
       },
@@ -256,7 +257,7 @@ function buildHierarchy(s,currentModel){
           {label:'routing boundary',kind:'out',detail:'z0 semantic → Kerdoios placement'}
         ]
       },
-      {label:'control path',kind:'view',detail:'intent → verified outcome',children:control?[control]:[]},
+      {label:'control path',kind:'view',detail:'intent → outcome (unjoined)',children:control?[control]:[]},
       {
         label:'economics',
         kind:'view',
@@ -304,23 +305,32 @@ function TreeNode({node}){
   ]})
 }
 
+function SourceDetails({sources,stale}){
+  return jsx('div',{className:'cos-sources',children:Object.entries(sources||{}).map(([name,v])=>jsxs('details',{className:'cos-source '+(stale?'degraded':str(v?.status)),children:[
+    jsx('summary',{children:name+': '+(stale?'stale (last known)':str(v?.status))+' · '+str(v?.freshness)}),
+    jsx('div',{children:'observed '+t(v?.observed_at)}),
+    jsx('div',{children:'checked '+t(v?.checked_at)}),
+    jsx('div',{children:'source revision '+str(v?.source_version||'unknown')}),
+    jsx('div',{children:'producer revision '+str(v?.producer_revision||'unknown')}),
+    jsx('div',{children:'coverage '+str(typeof v?.coverage==='string'?v.coverage:v?.coverage?.scope||'unknown')}),
+    jsx('div',{children:'truncated '+str(v?.coverage?.truncated)+' · per-kind limit '+count(v?.coverage?.limit_per_kind)}),
+    jsx('div',{children:'blocker '+str(v?.reason||'no source error; qualification separate')})
+  ]},name))})
+}
+
 function Hud({ctx}){
-  const busy=useValue(host.state.busy)
-  const model=useValue(host.state.model)
-  const profile=useValue(host.state.profile)
-  const gateway=useValue(host.state.gateway)
-  const cwd=useValue(host.state.cwd)
+  const model=null // Both hosts share only the sanitized API projection.
   const [s,err]=useProjection(ctx)
   const fleet=s?.fleet||[]
-  const flow=s?.flow||[]
+  const flow=[] // Historical receipts cannot certify stages.
   const caps=s?.capacity||[]
   const k=s?.k8s||{}
   const mem=s?.memory||{}
   const econ=s?.economics||{}
   const disks=s?.disks||{}
   const security=s?.security||{}
-  const status=err?'offline':(s?.status||'loading')
-  const live=Boolean(busy||flow.length)
+  const stale=Boolean(err || (numeric(s?.generated_at) && Date.now()/1000-s.generated_at>30))
+  const status=stale?'stale — API unavailable':(s?.status||'loading')
   const hierarchy=buildHierarchy(s||{},model)
 
   return jsxs('div',{className:'cos',children:[
@@ -328,11 +338,11 @@ function Hud({ctx}){
     jsxs('div',{className:'cos-top',children:[
       jsxs('div',{children:[
         jsx('div',{className:'cos-brand',children:'zer0'}),
-        jsx('div',{className:'cos-sub',children:'company os · live network'}),
-        jsxs('div',{className:'cos-status '+cls(status),children:[jsx('span',{className:'cos-dot '+(status==='offline'?'bad':status==='degraded'?'warn':'')}),status]})
+        jsx('div',{className:'cos-sub',children:'company os · read-only network'}),
+        jsxs('div',{className:'cos-status '+cls(status),children:[jsx('span',{className:'cos-dot '+(stale?'bad':status==='ok'?'':'warn')}),status]})
       ]}),
-      jsxs('div',{className:'cos-clock',children:[jsx('div',{children:t(Date.now())}),jsx('div',{className:'cos-sub',children:str(profile)})]}),
-      jsxs('div',{className:'cos-meta',children:[jsx('div',{children:str(model)}),jsx('div',{children:'gateway '+str(gateway)}),jsx('div',{children:'cwd '+short(cwd,34)})]})
+      jsxs('div',{className:'cos-clock',children:[jsx('div',{children:'snapshot '+t(s?.generated_at)}),jsx('div',{className:'cos-sub',children:'coverage · '+str(s?.coverage?.scope||'unknown')})]}),
+      jsxs('div',{className:'cos-meta',children:[jsx('div',{children:'source revision '+short(s?.implementation?.content_sha256,16)}),jsx('div',{children:'consumer: Hermes CompanyOS'}),jsx('div',{children:'No dispatch · no inference · no mutations'})]})
     ]}),
     jsxs('div',{className:'cos-map',children:[
       jsxs('div',{className:'cos-map-head',children:[
@@ -356,24 +366,39 @@ function Hud({ctx}){
     jsxs('div',{className:'cos-grid',children:[
       jsxs('div',{children:[
         jsx(Panel,{title:'fleet',children:jsxs('div',{children:[
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'visible'}),jsx('span',{className:'cos-val',children:count(fleet.length)})]}),
+          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'process presence (not workers)'}),jsx('span',{className:'cos-val',children:s?.sources?.processes?.status==='ok'?count(fleet.length):'unknown'})]}),
+          s?.sources?.processes?.status!=='ok'?jsx('div',{className:'cos-muted',children:'process source unavailable; empty rows are not measured zero'}):null,
           fleet.slice(0,8).map((a,i)=>jsxs('div',{className:'cos-row',children:[
             jsx('span',{children:short(a.harness||a.name||a.capability||'agent',14)}),
-            jsx('span',{className:'cos-val '+cls(a.status),children:short(a.status||a.provider||'seen',13)})
-          ]},a.trace_id||a.pid||i))
+            jsx('span',{className:'cos-val cos-warn',title:'session / trace / task / heartbeat unknown',children:'pid '+str(a.pid)+' · '+(stale?'stale':str(a.status))})
+          ]},a.trace_id||a.pid||i)),
+          jsx('div',{className:'cos-muted',children:'Showing '+Math.min(8,fleet.length)+' / '+fleet.length+' local matches. Governed / session / trace / task / heartbeat: unknown. Process age is not work age.'})
         ]})}),
         jsx('div',{style:{height:10}}),
         jsx(Panel,{title:'substrate',children:jsxs('div',{children:[
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'k8s nodes'}),jsx('span',{className:'cos-val',children:count((k.nodes||[]).length)})]}),
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'pods'}),jsx('span',{className:'cos-val',children:count((k.pods||[]).length)})]}),
-          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'memory runtime'}),jsx('span',{className:'cos-val '+(mem.runtime_usable?'cos-ok':'cos-warn'),children:mem.runtime_usable?'usable':'degraded'})]}),
+          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'k8s nodes'}),jsx('span',{className:'cos-val',children:k.available?count((k.nodes||[]).length):'unknown'})]}),
+          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'pods'}),jsx('span',{className:'cos-val',children:k.available?count((k.pods||[]).length):'unknown'})]}),
+          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'workload readiness'}),jsx('span',{className:'cos-val cos-warn',children:stale?'stale':k.ready===true?'ready':k.ready===false?'not ready':'unknown'})]}),
+          jsx('details',{children:[jsx('summary',{children:'inspect pods'}),(k.pods||[]).map((p,i)=>jsx('div',{className:'cos-muted',children:str(p.name)+' · '+str(p.phase)+' · ready '+str(p.workload_ready)+' · restarts '+count(p.restarts)},i))]}),
+          jsxs('div',{className:'cos-row',children:[jsx('span',{children:'memory runtime'}),jsx('span',{className:'cos-val cos-warn',children:mem.runtime_usable===true?'qualified':mem.runtime_usable===false?'unavailable':'unknown'})]}),
           jsxs('div',{className:'cos-row',children:[jsx('span',{children:'sessions'}),jsx('span',{className:'cos-val',children:count(mem.sessions)})]}),
           mem.home_symlink?jsx('div',{className:'cos-muted cos-warn',children:'AgentsView root is symlink → '+short(mem.symlink_target,30)}):null
         ]})})
       ]}),
       jsxs('div',{id:'cos-flow-detail',className:'cos-flow',children:[
         jsx('div',{className:'cos-k',children:'data flow'}),
-        jsx('div',{className:'cos-pipe',children:['AODL','PLACE','LEASE','EXEC','VERIFY'].map((x,i)=>jsx('div',{className:'cos-node '+(live&&i<=(flow[0]?.verified?4:3)?'live':''),children:x},x))}),
+        jsx('div',{className:'cos-pipe',children:['AODL','PLACE','DISPATCH','ADMIT','EXEC','VERIFY'].map(x=>jsx('div',{className:'cos-node',children:x+' · unknown'},x))}),
+        jsx('div',{className:'cos-muted',children:'Missing source-owned control / episode join. Next: qualify the existing z0 #47 / #54 read contract; do not create a producer here.'}),
+        jsx('div',{className:'cos-muted',children:'Memory / reuse / shadow activation and independent behavior are unqualified. Branch implementation and CI are not deployed quality.'}),
+        jsx('details',{className:'cos-muted',children:[
+          jsx('summary',{children:'Qualification gaps — audit context, not live deployment'}),
+          jsx('div',{children:'2026-10-10 audit: #137 source 6770954cf42615ab5bdb2699115acb809580594d has native delivery, but behavioral FAIL / DISCARD; memory/harness bindings are absent live.'}),
+          jsx('div',{children:'#149 / #150 are stacked receipt-integrity branches, not master or deployed acceptance. Audited runtime: 4de1aa962cf4c9a19b18a6120ea27309b908da65, dirty. Current loaded revision is unknown to this read contract.'}),
+          jsx('div',{children:'Next: source owners reconcile the existing stack and independently qualify behavior. Do not activate memory/shadow or infer quality from green CI.'})
+        ]}),
+        jsx('div',{className:'cos-row',children:'Dispatch readiness: '+str(s?.z0_service?.readiness?.ok)+' · governed remote ready: '+str(s?.z0_service?.readiness?.governed_remote_ready)}),
+        jsx('div',{className:'cos-row',children:'Outcome expectations: '+count(s?.z0_service?.outcome_coverage?.expectations)+' · causal quality: '+str(s?.z0_service?.outcome_coverage?.promotion_gate?.causal_quality_proven)}),
+        jsx('details',{children:[jsx('summary',{children:'inspect service metrics (not economics)'}),...(s?.z0_service?.metrics||[]).map((m,i)=>jsx('div',{className:'cos-muted',children:m.metric+' '+str(m.provider)+' '+count(m.value)},i))]}),
         jsx('div',{className:'cos-stream',children:flow.slice(0,13).map((e,i)=>jsxs('div',{className:'cos-event',children:[
           jsx('span',{children:t(e.ts)}),
           jsx('span',{className:'cos-tag',children:short(e.harness||'—',11)}),
@@ -386,16 +411,16 @@ function Hud({ctx}){
         jsx(Panel,{id:'cos-capacity-detail',title:'provider capacity',children:jsxs('div',{children:[
           caps.slice(0,9).map((r,i)=>{const rem=firstRemaining(r.quota||{}),lim=firstLimit(r.quota||{}),pct=rem!=null&&lim>0?Math.max(0,Math.min(100,rem/lim*100)):0;return jsxs('div',{className:'cos-cap',children:[
             jsxs('div',{className:'cos-row',children:[jsx('span',{children:short(r.provider||'provider',13)}),jsx('span',{className:'cos-val',children:rem==null?'unknown':count(rem)})]}),
-            jsx('div',{className:'cos-muted',children:short(r.model||'—',30)}),
+            jsx('div',{className:'cos-muted',children:'inflight '+count(r.inflight)+' / cap '+count(r.cap)+' · '+str(r.reason)+' · quota unknown'}),
             jsx('div',{className:'cos-bar',children:jsx('i',{style:{width:pct+'%'}})})
           ]},(r.provider||'p')+'-'+(r.model||i))}),
-          caps.length===0?jsx('div',{className:'cos-muted',children:'quota ledger not yet observed'}):null
+          caps.length===0?jsx('div',{className:'cos-muted',children:'No provider status observed; quota unknown'}):null
         ]})}),
         jsx('div',{style:{height:10}}),
         jsx(Panel,{title:'source health',children:jsxs('div',{children:[
-          jsx('div',{className:'cos-sources',children:Object.entries(s?.sources||{}).map(([n,v])=>jsx('span',{className:'cos-source '+str(v?.status),title:v?.reason||'',children:n+':'+str(v?.status)},n))}),
-          disks.home?jsx('div',{className:'cos-row',children:[jsx('span',{children:'home free'}),jsx('span',{className:'cos-val '+cls(disks.home.status),children:disks.home.free_pct+'%'})]}):null,
-          disks.mnt?jsx('div',{className:'cos-row',children:[jsx('span',{children:'/mnt free'}),jsx('span',{className:'cos-val '+cls(disks.mnt.status),children:disks.mnt.free_pct+'%'})]}):null,
+          jsx(SourceDetails,{sources:s?.sources,stale}),
+          disks.home?jsx('div',{className:'cos-row',children:[jsx('span',{children:'home free'}),jsx('span',{className:'cos-val '+cls(disks.home.status),children:count(disks.home.free_pct)+(numeric(disks.home.free_pct)?'%':'')})]}):null,
+          disks.data?jsx('div',{className:'cos-row',children:[jsx('span',{children:'data free'}),jsx('span',{className:'cos-val '+cls(disks.data.status),children:count(disks.data.free_pct)+(numeric(disks.data.free_pct)?'%':'')})]}):null,
           jsx('div',{className:'cos-row',children:[jsx('span',{children:'env security'}),jsx('span',{className:'cos-val '+cls(security.status),children:security.status==='critical'?'critical ('+count(security.unsafe_count)+')':str(security.status||'unknown')})]}),
           (security.unsafe_files||[]).slice(0,3).map((f,i)=>jsx('div',{className:'cos-muted cos-bad',children:short(f.file,26)+' mode '+str(f.mode)},'sec-'+i))
         ]})})

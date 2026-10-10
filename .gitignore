@@ -3,3 +3,6 @@ node_modules/
 *.log
 .venv/
 dist/
+__pycache__/
+.pytest_cache/
+*.pyc

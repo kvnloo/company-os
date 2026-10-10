@@ -1,15 +1,22 @@
 """Company OS local projection backend.
 
-Mounted by Hermes at /api/plugins/company-os/. Read-only by design: it reads
-local z0/Kerdoios/Tokenomics/AgentsView/Kubernetes state and emits a sanitized
-projection. It never returns prompts, tool bodies, credentials, or raw memory.
+Mounted by Hermes at /api/plugins/company-os/. Read-only: existing z0 GET
+contracts, optional capacity, process/Kubernetes and host metadata. Missing
+control/episode, economics and memory contracts remain explicit gaps.
 """
 from __future__ import annotations
 
+import hashlib
+import http.client
+import re
+from urllib.parse import urlsplit
 import json
+import math
+import stat
+import itertools
+from datetime import datetime
 import os
 import shutil
-import sqlite3
 import subprocess
 import time
 from pathlib import Path
@@ -21,9 +28,7 @@ router = APIRouter()
 
 SCHEMA = "company_os.snapshot.v1"
 CAPACITY_SCHEMA = "z0.capacity.snapshot.v1"
-HERMES_HOME = Path(os.environ.get("HERMES_HOME", "~/.hermes")).expanduser()
-Z0_HOME = Path(os.environ.get("Z0INT_HOME", "~/.z0int")).expanduser()
-MAX_EVENTS = 40
+
 KNOWN_AGENTS = ("hermes", "omp", "dsh", "omo", "codex", "claude", "opencode", "pi")
 
 
@@ -31,31 +36,76 @@ def _now() -> float:
     return time.time()
 
 
-def _read_json(path: Path) -> Any:
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
+MAX_BYTES = 524288
+MAX_ROWS = 64
+PROVIDERS = ("groq", "cerebras", "openai", "anthropic", "google", "gemini", "nous", "grok", "xai", "openrouter", "local")
+STATUSES = ("ok", "unknown", "unavailable", "degraded", "online", "offline", "ready", "blocked", "running", "waiting", "completed", "failed", "stale")
 
 
-def _tail_jsonl(path: Path, limit: int = 1000) -> list[dict[str, Any]]:
-    try:
-        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()[-limit:]
-    except OSError:
-        return []
-    out: list[dict[str, Any]] = []
-    for line in lines:
+def _number(v):
+    return v if type(v) in (int, float) and math.isfinite(v) and 0 <= v <= 2**53 else None
+
+
+def _stamp(v):
+    if isinstance(v, str) and len(v) <= 40:
         try:
-            row = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(row, dict):
-            out.append(row)
-    return out
+            d = datetime.fromisoformat(v.replace("Z", "+00:00"))
+            v = d.timestamp() if d.tzinfo else None
+        except ValueError:
+            return None
+    n = _number(v)
+    return n if n is not None and 0 < n < 1e11 else None
+
+
+def _enum(*allowed):
+    return lambda v: v if isinstance(v, str) and v in allowed else None
+
+
+def _alias(v):
+    # IDs and labels are not trusted public text. Stable opaque aliases retain
+    # joins without exporting labels, paths, prompts, or secret-like values.
+    if not (isinstance(v, str) and 0 < len(v) <= 256 or type(v) is int and 0 <= v <= 2**53):
+        return None
+    return "ref-" + hashlib.sha256(str(v).encode()).hexdigest()[:16]
+
+
+def _project(value, schema, depth=0):
+    """Closed recursive shape; no unknown keys or arbitrary string values."""
+    if depth > 8:
+        return None
+    if isinstance(schema, dict):
+        src = value if isinstance(value, dict) else {}
+        return {k: _project(src.get(k), rule, depth + 1) for k, rule in schema.items()}
+    if isinstance(schema, list):
+        return [_project(v, schema[0], depth + 1) for v in value[:MAX_ROWS]] if isinstance(value, list) else []
+    return schema(value)
+
+
+def _freshness(observed):
+    if observed is None:
+        return "unknown"
+    age = _now() - observed
+    return "invalid" if age < -5 else "stale" if age > 30 else "fresh"
 
 
 def _source(status: str, **extra: Any) -> dict[str, Any]:
-    return {"status": status, **extra}
+    observed = _stamp(extra.pop("observed_at", None))
+    return {"status": status, "checked_at": _now(), "observed_at": observed,
+            "age_s": max(0, _now() - observed) if observed is not None and observed <= _now() + 5 else None,
+            "freshness": _freshness(observed), "source_version": None,
+            "producer_revision": None, **extra}
+
+
+def _read_bounded(path):
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+    with os.fdopen(fd, "rb") as f:
+        info = os.fstat(f.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES:
+            raise ValueError("invalid_source_file")
+        raw = f.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES:
+        raise ValueError("source_too_large")
+    return raw
 
 
 def _run_json(argv: list[str], timeout: float = 2.0) -> tuple[Any, str | None]:
@@ -66,48 +116,50 @@ def _run_json(argv: list[str], timeout: float = 2.0) -> tuple[Any, str | None]:
     if proc.returncode != 0:
         return None, f"exit:{proc.returncode}"
     try:
+        if len(proc.stdout) > MAX_BYTES:
+            return None, "oversize"
         return json.loads(proc.stdout), None
-    except json.JSONDecodeError:
+    except (ValueError, UnicodeError, RecursionError):
         return None, "invalid_json"
 
 
 def _k8s() -> tuple[dict[str, Any], dict[str, Any]]:
     if not shutil.which("kubectl"):
-        return {"available": False, "pods": [], "nodes": []}, _source("unavailable", reason="kubectl_missing")
-
-    pods_raw, pods_err = _run_json(["kubectl", "get", "pods", "-A", "-o", "json"])
-    nodes_raw, nodes_err = _run_json(["kubectl", "get", "nodes", "-o", "json"])
-    pods: list[dict[str, Any]] = []
-    for item in (pods_raw or {}).get("items", []):
-        meta = item.get("metadata") or {}
-        status = item.get("status") or {}
-        spec = item.get("spec") or {}
+        return {"available": False, "ready": None, "pods": [], "nodes": []}, _source("unavailable", reason="kubectl_missing")
+    pods_raw, pods_err = _run_json(["kubectl", "get", "pods", "-A", "-o", "json", "--request-timeout=2s"])
+    nodes_raw, nodes_err = _run_json(["kubectl", "get", "nodes", "-o", "json", "--request-timeout=2s"])
+    def items(raw):
+        return raw.get("items", []) if isinstance(raw, dict) and isinstance(raw.get("items"), list) else []
+    def ready(status):
+        conditions = status.get("conditions", [])
+        if not isinstance(conditions, list):
+            return None
+        v = next((c.get("status") for c in conditions[:MAX_ROWS] if isinstance(c, dict) and c.get("type") == "Ready"), None)
+        return True if v == "True" else False if v == "False" else None
+    pods, nodes = [], []
+    for item in items(pods_raw)[:MAX_ROWS]:
+        if not isinstance(item, dict):
+            continue
+        meta, status = item.get("metadata") or {}, item.get("status") or {}
         cs = status.get("containerStatuses") or []
-        pods.append({
-            "namespace": meta.get("namespace"),
-            "name": meta.get("name"),
-            "phase": status.get("phase"),
-            "node": spec.get("nodeName"),
-            "ready": sum(1 for c in cs if c.get("ready")),
-            "containers": len(cs),
-            "restarts": sum(int(c.get("restartCount") or 0) for c in cs),
-            "created_at": meta.get("creationTimestamp"),
-        })
-    nodes: list[dict[str, Any]] = []
-    for item in (nodes_raw or {}).get("items", []):
-        meta = item.get("metadata") or {}
-        status = item.get("status") or {}
-        ready = next((c.get("status") for c in status.get("conditions", []) if c.get("type") == "Ready"), None)
-        nodes.append({
-            "name": meta.get("name"),
-            "ready": ready == "True",
-            "cpu": (status.get("capacity") or {}).get("cpu"),
-            "memory": (status.get("capacity") or {}).get("memory"),
-        })
-    status = "ok" if pods_err is None and nodes_err is None else "degraded"
-    return {"available": True, "pods": pods, "nodes": nodes}, _source(
-        status, pods_error=pods_err, nodes_error=nodes_err, observed_at=_now()
-    )
+        counts = [_number(c.get("restartCount")) if isinstance(c, dict) else None for c in cs[:MAX_ROWS]]
+        restarts = sum(v for v in counts if v is not None) if counts and all(v is not None for v in counts) and len(cs) <= MAX_ROWS else None
+        pods.append({"name": _alias(meta.get("name")), "namespace": _alias(meta.get("namespace")),
+                     "phase": _enum("Running", "Pending", "Succeeded", "Failed", "Unknown")(status.get("phase")),
+                     "workload_ready": ready(status), "ready": sum(c.get("ready") is True for c in cs[:MAX_ROWS] if isinstance(c, dict)),
+                     "containers": len(cs), "restarts": restarts})
+    for item in items(nodes_raw)[:MAX_ROWS]:
+        if not isinstance(item, dict):
+            continue
+        nodes.append({"name": _alias((item.get("metadata") or {}).get("name")), "ready": ready(item.get("status") or {})})
+    health = bool(nodes) and all(n["ready"] is True for n in nodes) and all(p["phase"] == "Succeeded" or p["workload_ready"] is True for p in pods)
+    truncated = len(items(pods_raw)) > MAX_ROWS or len(items(nodes_raw)) > MAX_ROWS
+    ok = not pods_err and not nodes_err and health and not truncated
+    data = {"available": not pods_err and not nodes_err, "ready": health if not pods_err and not nodes_err and not truncated else None,
+            "pods": pods, "nodes": nodes, "coverage": {"scope": "current_kube_context", "limit_per_kind": MAX_ROWS, "truncated": truncated}}
+    return data, _source("ok" if ok else "degraded", observed_at=_now(),
+                         reason=None if ok else "workloads_unready_or_inventory_incomplete", coverage=data["coverage"],
+                         source_version="sha256:" + hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest())
 
 
 def _process_fleet() -> list[dict[str, Any]]:
@@ -116,490 +168,318 @@ def _process_fleet() -> list[dict[str, Any]]:
             ["ps", "-eo", "pid=,comm=,etimes="],
             capture_output=True, text=True, timeout=1.0, check=False
         )
-    except (OSError, subprocess.TimeoutExpired):
-        return []
-    if proc.returncode != 0:
-        return []
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError("process_source_unavailable") from exc
+    if proc.returncode != 0 or len(proc.stdout) > MAX_BYTES:
+        raise RuntimeError("process_source_unavailable")
     rows: list[dict[str, Any]] = []
+    # comm may contain spaces (Linux PR_SET_NAME). Parse the numeric edges;
+    # never inspect argv, which can contain prompts and credentials.
+    aliases = {name: name for name in KNOWN_AGENTS}
+    aliases["omp daemon brok"] = "omp"
     for raw in proc.stdout.splitlines():
-        parts = raw.split()
-        if len(parts) < 3:
+        parts = raw.strip().split(maxsplit=1)
+        if len(parts) != 2:
             continue
-        pid, comm, age = parts[0], parts[1], parts[2]
-        low = comm.lower()
-        if not any(name in low for name in KNOWN_AGENTS):
+        edge = parts[1].rsplit(maxsplit=1)
+        if len(edge) != 2:
             continue
-        rows.append({"pid": int(pid), "name": comm, "age_s": int(age), "status": "running"})
+        pid, (comm, age) = parts[0], edge
+        name = aliases.get(comm.lower())
+        if not name or len(pid) > 10 or len(age) > 12 or not pid.isdecimal() or not age.isdecimal() or int(pid) <= 0:
+            continue
+        rows.append({"pid": int(pid), "name": name, "harness": name,
+                     "age_s": int(age), "status": "observed", "governed": None,
+                     "host_id": "local", "session_id": None, "trace_id": None,
+                     "capability": None, "heartbeat_at": None,
+                     "observed_at": _now(), "coverage": "process_presence_only"})
     return rows[:100]
 
 
-def _z0_control() -> tuple[dict[str, Any] | None, dict[str, Any]]:
-    override = os.environ.get("COMPANY_OS_Z0_SNAPSHOT")
-    path = Path(override).expanduser() if override else Z0_HOME / "state" / "control_snapshot.json"
-    data = _read_json(path)
-    if isinstance(data, dict):
-        return data, _source("ok", path=str(path), observed_at=path.stat().st_mtime)
-    return None, _source("missing", path=str(path))
-
-
 def _safe_capacity_quota(value: Any) -> dict[str, Any]:
-    src = value if isinstance(value, dict) else {}
-    out: dict[str, Any] = {}
-    dimensions = src.get("dimensions")
-    if isinstance(dimensions, dict):
-        safe_dims: dict[str, Any] = {}
-        for name, dim in dimensions.items():
-            if not isinstance(name, str) or not isinstance(dim, dict):
-                continue
-            safe_dims[name] = {
-                key: dim.get(key)
-                for key in ("limit", "remaining", "reset_at", "source")
-                if key in dim
-            }
-        if safe_dims:
-            out["dimensions"] = safe_dims
-    for key in (
-        "remaining_free_quota",
-        "remaining_tokens",
-        "remaining",
-        "day_tokens_remaining",
-        "limit",
-        "daily_limit",
-        "day_tokens_limit",
-        "reset_at",
-    ):
-        if key in src:
-            out[key] = src.get(key)
+    dimension = {"remaining": _number, "limit": _number, "reset_at": _stamp}
+    schema = {k: _number for k in ("remaining_free_quota", "remaining_tokens", "remaining", "day_tokens_remaining", "limit", "daily_limit", "day_tokens_limit")}
+    schema.update(reset_at=_stamp, dimensions={k: dimension for k in ("tokens", "requests", "rpm", "tpm", "rpd", "tpd")})
+    out = _project(value, schema)
+    for row in (out, *out["dimensions"].values()):
+        if row.get("reset_at") is not None and row["reset_at"] <= _now():
+            for key in row:
+                if "remaining" in key:
+                    row[key] = None
     return out
 
 
 def _safe_capacity_resources(value: Any) -> dict[str, Any]:
-    src = value if isinstance(value, dict) else {}
-    out = {
-        key: src.get(key)
-        for key in (
-            "cpu_logical",
-            "ram_total_bytes",
-            "ram_available_bytes",
-            "storage_total_bytes",
-            "storage_free_bytes",
-            "gpu_count",
-        )
-        if key in src
-    }
-    gpus = []
-    for gpu in src.get("gpus") or []:
-        if not isinstance(gpu, dict):
-            continue
-        gpus.append({
-            key: gpu.get(key)
-            for key in ("id", "name", "memory_total_bytes", "memory_free_bytes", "utilization_pct")
-            if key in gpu
-        })
-    if gpus:
-        out["gpus"] = gpus
-        out["gpu_count"] = src.get("gpu_count", len(gpus))
-    return out
+    schema = {k: _number for k in ("cpu_logical", "ram_total_bytes", "ram_available_bytes", "storage_total_bytes", "storage_free_bytes", "gpu_count")}
+    schema["gpus"] = [{"id": _alias, "name": _alias, "memory_total_bytes": _number,
+                       "memory_free_bytes": _number, "utilization_pct": _number}]
+    return _project(value, schema)
 
 
 def _sanitize_capacity_snapshot(data: Any) -> dict[str, Any] | None:
     if not isinstance(data, dict) or data.get("schema") != CAPACITY_SCHEMA:
         return None
-
-    hosts = []
-    for row in data.get("hosts") or []:
-        if not isinstance(row, dict) or row.get("host_id") is None:
-            continue
-        hosts.append({
-            "host_id": row.get("host_id"),
-            "label": row.get("label"),
-            "mode": row.get("mode"),
-            "status": row.get("status"),
-            "rtt_ms": row.get("rtt_ms"),
-            "resources": _safe_capacity_resources(row.get("resources")),
-            "observed_at": row.get("observed_at"),
-        })
-
-    sessions = []
-    for row in data.get("sessions") or []:
-        if not isinstance(row, dict) or row.get("session_id") is None:
-            continue
-        sessions.append({
-            key: row.get(key)
-            for key in (
-                "session_id",
-                "name",
-                "host_id",
-                "runtime",
-                "status",
-                "current",
-                "locked",
-                "tab_count",
-                "rtt_ms",
-                "pane_id",
-                "session_sticky",
-                "migration_allowed",
-                "observed_at",
-            )
-        })
-
-    offers = []
-    for row in data.get("offers") or []:
-        if not isinstance(row, dict) or row.get("offer_id") is None:
-            continue
-        offers.append({
-            "offer_id": row.get("offer_id"),
-            "origin": row.get("origin"),
-            "provider": row.get("provider"),
-            "model": row.get("model"),
-            "actor_id": row.get("actor_id"),
-            "host_id": row.get("host_id"),
-            "health": row.get("health"),
-            "resources": _safe_capacity_resources(row.get("resources")),
-            "quota": _safe_capacity_quota(row.get("quota")),
-            "price": row.get("price"),
-            "predicted_cost": row.get("predicted_cost"),
-            "burn_rate": row.get("burn_rate"),
-            "time_to_exhaustion": row.get("time_to_exhaustion"),
-            "time_to_reset": row.get("time_to_reset"),
-            "reset_at": row.get("reset_at"),
-            "observed_at": row.get("observed_at"),
-        })
-
-    leases = []
-    for row in data.get("leases") or []:
-        if not isinstance(row, dict) or row.get("placement_id") is None:
-            continue
-        leases.append({
-            key: row.get(key)
-            for key in (
-                "placement_id",
-                "demand_id",
-                "offer_id",
-                "selected_offer_id",
-                "status",
-                "lease_expires_at",
-                "selection_reason",
-                "policy_revision",
-            )
-            if key in row
-        })
-
-    return {
-        "schema": CAPACITY_SCHEMA,
-        "generated_at": data.get("generated_at"),
-        "status": data.get("status"),
-        "sources": data.get("sources") if isinstance(data.get("sources"), dict) else {},
-        "hosts": hosts,
-        "sessions": sessions,
-        "offers": offers,
-        "leases": leases,
-        "summary": {
-            "hosts": len(hosts),
-            "sessions": len(sessions),
-            "offers": len(offers),
-            "leases": len(leases),
-        },
+    common = {"status": _enum(*STATUSES), "observed_at": _stamp}
+    boolean = lambda v: v if type(v) is bool else None
+    schema = {
+        "generated_at": _stamp, "observed_at": _stamp,
+        "sources": {k: common for k in ("tern", "kerdoios", "k8s")},
+        "hosts": [{**common, "host_id": _alias, "label": _alias,
+                   "mode": _enum("local", "ssh", "kubernetes", "remote"),
+                   "rtt_ms": _number, "resources": _safe_capacity_resources}],
+        "sessions": [{**common, "session_id": _alias, "host_id": _alias,
+                      "name": _alias, "runtime": _enum(*KNOWN_AGENTS),
+                      "current": boolean, "locked": boolean, "tab_count": _number,
+                      "rtt_ms": _number}],
+        "offers": [{**common, "offer_id": _alias, "origin": _enum("provider", "host"),
+                    "provider": _enum(*PROVIDERS), "model": _alias, "actor_id": _alias,
+                    "host_id": _alias, "health": _enum(*STATUSES),
+                    "resources": _safe_capacity_resources, "quota": _safe_capacity_quota,
+                    "price": _number, "predicted_cost": _number, "burn_rate": _number,
+                    "time_to_exhaustion": _number, "time_to_reset": _number, "reset_at": _stamp}],
+        "leases": [{**common, "placement_id": _alias, "demand_id": _alias,
+                    "offer_id": _alias, "selected_offer_id": _alias,
+                    "lease_expires_at": _stamp, "policy_revision": _alias}],
     }
+    out = _project(data, schema)
+    out["schema"] = CAPACITY_SCHEMA
+    for row in out["sessions"]:
+        row.update(session_sticky=True, migration_allowed=False)
+    for name in ("hosts", "sessions", "offers", "leases"):
+        for row in out[name]:
+            row["freshness"] = _freshness(row.get("observed_at"))
+            if row["freshness"] != "fresh":
+                row["status"] = "stale" if row["freshness"] == "stale" else "unknown"
+                if "health" in row:
+                    row["health"] = "unknown"
+                if "quota" in row:
+                    q = row["quota"]
+                    for dim in (q, *q["dimensions"].values()):
+                        for key in dim:
+                            if "remaining" in key:
+                                dim[key] = None
+    out["summary"] = {k: len(out[k]) for k in ("hosts", "sessions", "offers", "leases")}
+    out["coverage"] = {"limit_per_kind": MAX_ROWS, "scope": "optional_unqualified_capacity",
+                       "truncated": any(isinstance(data.get(k), list) and len(data[k]) > MAX_ROWS for k in out["summary"])}
+    return out
 
 
 def _z0_capacity() -> tuple[dict[str, Any] | None, dict[str, Any]]:
-    override = os.environ.get("COMPANY_OS_Z0_CAPACITY_SNAPSHOT")
-    path = Path(override).expanduser() if override else Z0_HOME / "state" / "capacity_snapshot.json"
-    raw = _read_json(path)
-    if raw is None:
-        return None, _source("missing", path=str(path), optional=True)
-    data = _sanitize_capacity_snapshot(raw)
-    if data is None:
-        return None, _source("degraded", path=str(path), reason="invalid_capacity_schema", optional=True)
+    root = Path(os.environ.get("Z0INT_HOME", "~/.z0int")).expanduser()
+    path = Path(os.environ.get("COMPANY_OS_Z0_CAPACITY_SNAPSHOT", str(root / "state/capacity_snapshot.json"))).expanduser()
     try:
-        observed_at = path.stat().st_mtime
-    except OSError:
-        observed_at = None
-    return data, _source("ok", path=str(path), observed_at=observed_at, optional=True)
-
-
-def _receipt_paths() -> list[Path]:
-    override = os.environ.get("COMPANY_OS_RECEIPTS")
-    if override:
-        return [Path(p).expanduser() for p in override.split(os.pathsep) if p]
-    root = Z0_HOME / "receipts"
-    try:
-        return sorted(root.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)[:12]
-    except OSError:
-        return []
-
-
-def _receipt_rows() -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    paths = [p for p in _receipt_paths() if p.is_file()]
-    rows: list[dict[str, Any]] = []
-    for path in paths:
-        for row in _tail_jsonl(path, 500):
-            row = dict(row)
-            row["_source_file"] = path.name
-            rows.append(row)
-    rows.sort(key=lambda r: float(r.get("recorded_at") or r.get("timestamp") or 0), reverse=True)
-    return rows[:1500], _source("ok" if paths else "missing", files=[p.name for p in paths])
-
-
-def _event(row: dict[str, Any]) -> dict[str, Any]:
-    extra = row.get("extra") if isinstance(row.get("extra"), dict) else {}
-    provider = row.get("provider") or extra.get("provider")
-    model = row.get("model") or extra.get("model")
-    status = extra.get("status") or row.get("status")
-    verified = row.get("verified_success")
-    if verified is None:
-        verified = extra.get("verified_success")
-    return {
-        "ts": row.get("recorded_at") or row.get("timestamp"),
-        "trace_id": row.get("trace_id") or extra.get("caller_trace_id"),
-        "harness": row.get("harness_id") or extra.get("harness"),
-        "capability": row.get("capability_id") or row.get("function") or extra.get("function"),
-        "provider": provider,
-        "model": model,
-        "status": status,
-        "verified": verified,
-        "source": row.get("_source_file"),
-        "governed": bool(extra.get("authority_dispatch_id") or extra.get("admission_token") or str(row.get("trace_id") or "").startswith("dispatch-")),
-    }
+        raw = _read_bounded(path)
+        data = _sanitize_capacity_snapshot(json.loads(raw))
+        if data is None:
+            raise ValueError("unsupported_schema")
+    except FileNotFoundError:
+        return None, _source("unavailable", reason="not_observed", optional=True)
+    except (OSError, ValueError, UnicodeError, RecursionError):
+        return None, _source("degraded", reason="invalid_capacity_source", optional=True)
+    return data, _source("degraded", observed_at=data["observed_at"], optional=True,
+                         schema=CAPACITY_SCHEMA, source_version="sha256:" + hashlib.sha256(raw).hexdigest(),
+                         reason="producer_qualification_unknown", coverage=data["coverage"])
 
 
 def _economics(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    input_tokens = output_tokens = cached_tokens = actual_tokens = 0
-    cost = 0.0
-    verified = 0
-    measured = 0
-    governed = 0
-    for row in rows:
-        extra = row.get("extra") if isinstance(row.get("extra"), dict) else {}
-        def num(key: str) -> float:
-            value = row.get(key)
-            if value is None:
-                value = extra.get(key)
-            try:
-                return float(value or 0)
-            except (TypeError, ValueError):
-                return 0.0
-        input_tokens += int(num("input_tokens"))
-        output_tokens += int(num("output_tokens"))
-        cached_tokens += int(num("cached_input_tokens"))
-        actual_tokens += int(num("actual_tokens"))
-        cost += num("actual_cost") or num("cost_usd") or num("provider_reported_cost_usd")
-        if row.get("verified_success") is True or extra.get("verified_success") is True:
-            verified += 1
-        if row.get("measurement_state") == "complete" or extra.get("measurement_state") == "complete":
-            measured += 1
-        if extra.get("authority_dispatch_id") or extra.get("admission_token"):
-            governed += 1
-    return {
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "cached_input_tokens": cached_tokens,
-        "actual_tokens": actual_tokens or (input_tokens + output_tokens),
-        "observed_cost_usd": round(cost, 6),
-        "verified_events": verified,
-        "measurement_complete_events": measured,
-        "governed_events": governed,
-        "sampled_events": len(rows),
-    }
-
-
-def _quota() -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    path = Path(os.environ.get(
-        "COMPANY_OS_KERDOIOS_LEDGER",
-        str(HERMES_HOME / "cache" / "kerdoios" / "quota_ledger.json")
-    )).expanduser()
-    data = _read_json(path)
-    if not isinstance(data, dict):
-        return [], _source("missing", path=str(path))
-    out: list[dict[str, Any]] = []
-    entries = data.get("entries") or []
-    if isinstance(entries, dict):
-        entries = list(entries.values())
-    for entry in entries if isinstance(entries, list) else []:
-        if not isinstance(entry, dict):
-            continue
-        out.append({
-            "provider": entry.get("provider"),
-            "model": entry.get("model"),
-            "updated_at": entry.get("updated_at"),
-            "quota": entry.get("quota") if isinstance(entry.get("quota"), dict) else {},
-        })
-    return out, _source("ok", path=str(path), entries=len(out), observed_at=data.get("saved_at"))
-
-
-def _agentsview() -> tuple[dict[str, Any], dict[str, Any]]:
-    configured_root = os.environ.get("AGENTSVIEW_DATA_DIR")
-    home = Path(configured_root or "~/.agentsview").expanduser()
-    configured = os.environ.get("COMPANY_OS_AGENTSVIEW_DB")
-    db = Path(configured).expanduser() if configured else None
-    if db is None and home.is_file() and home.suffix == ".db":
-        db = home
-    if db is None and home.is_dir():
-        candidates = list(home.glob("*.db")) + list(home.glob("**/sessions.db"))
-        db = candidates[0] if candidates else None
-
-    home_symlink = home.is_symlink()
-    state = {
-        "cli": bool(shutil.which("agentsview")),
-        "data_dir": str(home),
-        "data_dir_source": "AGENTSVIEW_DATA_DIR" if configured_root else "default",
-        "home_exists": home.exists(),
-        "home_symlink": home_symlink,
-        "symlink_target": str(home.resolve()) if home_symlink else None,
-        "runtime_usable": bool(shutil.which("agentsview")) and not home_symlink,
-        "database": str(db) if db else None,
-        "database_readable": False,
-        "sessions": None,
-        "messages": None,
-    }
-
-    if db and db.is_file():
-        try:
-            conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=0.5)
-            names = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            if "sessions" in names:
-                state["sessions"] = int(conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0])
-            if "messages" in names:
-                state["messages"] = int(conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0])
-            conn.close()
-            state["database_readable"] = True
-        except (sqlite3.Error, OSError) as exc:
-            return state, _source("degraded", reason=type(exc).__name__)
-
-    if home_symlink:
-        return state, _source(
-            "degraded",
-            reason="runtime_root_symlink",
-            target=state["symlink_target"],
-            database_readable=state["database_readable"],
-        )
-    if state["runtime_usable"] and state["database_readable"]:
-        return state, _source("ok", observed_at=db.stat().st_mtime if db else None)
-    if state["cli"] or state["home_exists"] or state["database_readable"]:
-        return state, _source("degraded", reason="runtime_or_database_incomplete")
-    return state, _source("unavailable")
-
-
-def _disk_state(path: Path) -> dict[str, Any]:
-    try:
-        usage = shutil.disk_usage(path)
-    except OSError as exc:
-        return {"path": str(path), "status": "unavailable", "reason": type(exc).__name__}
-    free_pct = (usage.free / usage.total * 100.0) if usage.total else 0.0
-    return {
-        "path": str(path),
-        "status": "critical" if free_pct < 2 else ("warning" if free_pct < 10 else "ok"),
-        "total_bytes": usage.total,
-        "used_bytes": usage.used,
-        "free_bytes": usage.free,
-        "free_pct": round(free_pct, 2),
-    }
-
-
-
-def _environment_security() -> dict[str, Any]:
-    root = Path.home() / ".config" / "environment.d"
-    findings: list[dict[str, Any]] = []
-    if root.is_dir():
-        try:
-            entries = list(root.glob("*.conf"))
-        except OSError:
-            entries = []
-        for path in entries:
-            try:
-                mode = path.stat().st_mode & 0o777
-            except OSError:
-                continue
-            if mode & 0o022:
-                findings.append({
-                    "file": path.name,
-                    "mode": format(mode, "03o"),
-                    "group_writable": bool(mode & 0o020),
-                    "world_writable": bool(mode & 0o002),
-                })
-    return {
-        "environment_d": str(root),
-        "unsafe_files": findings,
-        "unsafe_count": len(findings),
-        "status": "critical" if findings else "ok",
-    }
-
+    # Raw decisions/outcome revisions are not a Tokenomics read contract.
+    # Unknown is not measured zero. Do not invent accounting or join semantics.
+    return {**dict.fromkeys(("input_tokens", "output_tokens", "cached_input_tokens",
+                            "actual_tokens", "observed_cost_usd", "verified_events",
+                            "measurement_complete_events", "governed_events")),
+            "status": "unknown", "reason": "tokenomics_read_contract_missing"}
 
 
 def _fleet(control: dict[str, Any] | None, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    if control and isinstance(control.get("fleet"), list):
-        return control["fleet"][:200]
-    latest: dict[str, dict[str, Any]] = {}
-    for row in rows:
-        event = _event(row)
-        tid = event.get("trace_id")
-        if not tid or tid in latest:
+    # No qualified control/episode read contract has been established. Historical
+    # receipts (including nested outcomes and ts) must stay with the source owner.
+    return _process_fleet()
+
+
+READ_ROUTES = {
+    "health": "/healthz", "readiness": "/readyz", "providers": "/v1/providers",
+    "metrics": "/metrics", "outcome_coverage": "/v1/observe/outcome/coverage",
+}
+SOURCE_NAMES = {"health": "z0_health", "readiness": "z0_readiness", "providers": "z0_providers", "metrics": "z0_metrics", "outcome_coverage": "z0_outcomes"}
+
+
+def _get_readonly(origin, path):
+    if path not in READ_ROUTES.values():
+        raise ValueError("route_not_allowed")
+    conn = http.client.HTTPConnection(origin.hostname, origin.port or 80, timeout=2)
+    try:
+        # No proxy, auth, cookies, redirects, retries, POST, or inference routes.
+        conn.request("GET", path, headers={"Accept": "application/json, text/plain"})
+        response = conn.getresponse()
+        raw = response.read(MAX_BYTES + 1)
+        if len(raw) > MAX_BYTES:
+            raise ValueError("response_too_large")
+        return raw, response.status
+    finally:
+        conn.close()
+
+
+def _safe_metrics(text):
+    # Only owner-defined metric names and typed labels, never arbitrary labels.
+    names = {"z0intelligence_" + n for n in (
+        "dispatch_active", "dispatch_peak", "dispatch_new_total", "dispatch_replayed_total",
+        "dispatch_ok_total", "dispatch_failed_total", "dispatch_seconds_sum", "dispatch_finished_total",
+        "admitted_connections_total", "rejected_connections_total",
+        "provider_inflight", "provider_cap", "provider_capped_total", "provider_ratelimited_total",
+        "provider_unhealthy", "provider_error_total", "provider_latency_seconds_count", "provider_latency_seconds_sum")}
+    rows = []
+    for line in text.splitlines():
+        match = re.fullmatch(r'([a-z0-9_]+)(?:\{provider="([a-z]+)"(?:,status="([0-9]{1,3})")?\})? ([0-9.eE+\-]+)', line)
+        if not match:
             continue
-        latest[str(tid)] = event
-    derived = list(latest.values())[:100]
-    processes = _process_fleet()
-    seen = {str(x.get("harness") or x.get("name") or "").lower() for x in derived}
-    for proc in processes:
-        if proc["name"].lower() not in seen:
-            derived.append(proc)
-    return derived[:200]
+        name, provider, status, value = match.groups()
+        if name not in names or provider is not None and provider not in PROVIDERS:
+            continue
+        try:
+            value = _number(float(value))
+        except ValueError:
+            continue
+        rows.append({"metric": name, "provider": provider, "http_status": int(status) if status else None, "value": value})
+    return rows[:MAX_ROWS]
+
+
+def _safe_live(kind, raw):
+    if kind == "metrics":
+        return _safe_metrics(raw.decode("utf-8"))
+    data = json.loads(raw)
+    if not isinstance(data, dict):
+        raise ValueError("invalid_response")
+    boolean = lambda v: v if type(v) is bool else None
+    if kind == "health":
+        if type(data.get("ok")) is not bool:
+            raise ValueError("invalid_health")
+        return _project(data, {"ok": boolean})
+    if kind == "readiness":
+        if type(data.get("ok")) is not bool:
+            raise ValueError("invalid_readiness")
+        return {**_project(data, {"ok": boolean, "authority_protocol_version": _number,
+                                 "aodl_admission_ready": boolean, "governed_remote_enabled": boolean,
+                                 "governed_remote_ready": boolean, "max_active": _number}),
+                "scope": "dispatch_readiness_not_model_or_deployment_acceptance"}
+    if kind == "providers":
+        providers = data.get("providers")
+        if not isinstance(providers, dict):
+            raise ValueError("invalid_providers")
+        return [{"provider": p, **_project(providers[p], {
+            "cap": _number, "inflight": _number, "available": boolean, "unhealthy": boolean,
+            "cooldown_until": _number, "last_http_status": _number,
+            "reason": _enum("healthy", "eligible_unprobed", "unmeasured_cap", "cap_zero", "account_blocked", "funds_exhausted", "cooldown", "inflight_cap")}),
+            "quota": {}, "model": None} for p in PROVIDERS if p in providers]
+    if data.get("schema") != "z0int.agentweb_outcome_coverage.v1":
+        raise ValueError("unsupported_coverage_schema")
+    return {"schema": "z0int.agentweb_outcome_coverage.v1", **_project(data, {
+        "as_of": _stamp, "expectations": _number, "observations": _number, "orphan_observations": _number,
+        "promotion_gate": {"eligible": boolean, "causal_quality_proven": boolean, "necessary_not_sufficient": boolean,
+                           "reasons": [_enum("no_required_expectations")]}})}
+
+
+def _z0_live():
+    try:
+        origin = urlsplit(os.environ.get("COMPANY_OS_Z0_URL", "http://127.0.0.1:11501"))
+        if origin.scheme != "http" or origin.hostname != "127.0.0.1" or origin.username or origin.password or origin.path or origin.query or origin.fragment:
+            raise ValueError("invalid_loopback_origin")
+        _ = origin.port
+    except ValueError:
+        return {}, {"z0_service": _source("unavailable", reason="invalid_loopback_origin")}
+    data, sources = {}, {}
+    for kind, path in READ_ROUTES.items():
+        name = SOURCE_NAMES[kind]
+        try:
+            raw, status = _get_readonly(origin, path)
+            if status not in (200, 503):
+                raise ValueError("unexpected_http_status")
+            value = _safe_live(kind, raw)
+            data[kind] = value
+            ok = status == 200 and (not isinstance(value, dict) or value.get("ok") is not False)
+            sources[name] = _source("ok" if ok else "degraded", http_status=status,
+                observed_at=value.get("as_of") if isinstance(value, dict) else None,
+                source_version="sha256:" + hashlib.sha256(raw).hexdigest(),
+                coverage="service_process_only", endpoint=path)
+        except Exception:
+            sources[name] = _source("unavailable", reason="read_failed", endpoint=path, coverage="service_process_only")
+    return data, sources
+
+
+def _collect(fn, fallback):
+    try:
+        return fn()
+    except Exception:
+        # Exception messages may contain paths, payloads or credentials.
+        return fallback, _source("unavailable", reason="source_failed")
+
+
+def _host_metadata():
+    disks = {}
+    for label, path in (("home", Path.home()), ("data", Path(os.environ.get("COMPANY_OS_DATA_ROOT", "/mnt/zer0models")))):
+        try:
+            usage = shutil.disk_usage(path)
+            pct = usage.free / usage.total * 100 if usage.total else None
+            disks[label] = {"total_bytes": usage.total, "free_bytes": usage.free,
+                            "free_pct": round(pct, 2) if pct is not None else None,
+                            "status": "unknown" if pct is None else "critical" if pct < 2 else "warning" if pct < 10 else "ok"}
+        except OSError:
+            disks[label] = {"status": "unavailable", "free_pct": None}
+    root = Path.home() / ".config/environment.d"
+    try:
+        # Metadata only, bounded; filenames and file contents never leave here.
+        paths = list(itertools.islice(root.glob("*.conf"), 257))
+        truncated = len(paths) > 256
+        unsafe = sum(bool(p.stat().st_mode & 0o022) for p in paths[:256])
+        security = {"status": "critical" if unsafe else "unknown" if truncated else "ok",
+                    "unsafe_count": unsafe, "truncated": truncated}
+    except OSError:
+        security = {"status": "unknown", "unsafe_count": None, "truncated": None}
+    data = {"disks": disks, "security": security}
+    status = "ok" if security["status"] == "ok" and all(d["status"] == "ok" for d in disks.values()) else "degraded"
+    return data, _source(status, observed_at=_now(), coverage="disk_and_permission_metadata_only")
 
 
 def build_snapshot() -> dict[str, Any]:
-    control, z0_source = _z0_control()
-    capacity_plane, capacity_plane_source = _z0_capacity()
-    rows, receipt_source = _receipt_rows()
-    capacity, quota_source = _quota()
-    memory, memory_source = _agentsview()
-    k8s, k8s_source = _k8s()
-    security = _environment_security()
-    disks = {
-        "home": _disk_state(Path.home()),
-        "mnt": _disk_state(Path("/mnt")) if Path("/mnt").exists() else {"path": "/mnt", "status": "unavailable"},
-    }
-    events = [_event(r) for r in rows[:MAX_EVENTS]]
+    capacity_plane, capacity_source = _collect(_z0_capacity, None)
+    k8s, k8s_source = _collect(_k8s, {"available": False, "pods": [], "nodes": []})
+    fleet, process_source = _collect(lambda: (_process_fleet(), _source("ok", observed_at=_now(), coverage="process_presence_only")), [])
+    service, service_sources = _z0_live()
+    host_meta, host_source = _collect(_host_metadata, {"security": {"status": "unknown"}, "disks": {}})
+    process_source["source_version"] = "sha256:" + hashlib.sha256(json.dumps(fleet, sort_keys=True).encode()).hexdigest() if process_source.get("status") == "ok" else None
     sources = {
-        "z0": z0_source,
-        "z0_capacity": capacity_plane_source,
-        "receipts": receipt_source,
-        "kerdoios": quota_source,
-        "memory": memory_source,
-        "k8s": k8s_source,
+        **service_sources,
+        "host_metadata": host_source,
+        "processes": process_source, "z0_capacity": capacity_source, "k8s": k8s_source,
+        "z0": _source("unavailable", reason="control_episode_read_contract_missing"),
+        "tokenomics": _source("unavailable", reason="tokenomics_read_contract_missing"),
+        "memory": _source("unavailable", reason="archive_runtime_not_qualified"),
     }
-    required_sources = {
-        name: value
-        for name, value in sources.items()
-        if not value.get("optional")
-    }
-    overall = "ok" if all(v["status"] == "ok" for v in required_sources.values()) else "degraded"
     return {
-        "schema": SCHEMA,
-        "generated_at": _now(),
-        "status": overall,
-        "sources": sources,
-        "fleet": _fleet(control, rows),
-        "capacity": capacity,
-        "capacity_plane": capacity_plane,
-        "economics": _economics(rows),
-        "memory": memory,
-        "k8s": k8s,
-        "security": security,
-        "disks": disks,
-        "flow": events,
-        "control": {
-            "available": control is not None,
-            "schema": control.get("schema") if control else None,
-        },
+        "schema": SCHEMA, "generated_at": _now(), "status": "degraded",
+        "implementation": {"content_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                           "profile_ref": _alias(os.environ.get("HERMES_HOME")), "scope": "server_process_profile"},
+        "sources": sources, "fleet": fleet, "capacity": service.get("providers", []), "capacity_plane": capacity_plane,
+        "z0_service": service,
+        "economics": _economics([]), "memory": {"runtime_usable": None}, "k8s": k8s,
+        **host_meta, "flow": [],
+        "control": {"available": False, "schema": None, "stages": [],
+                    "reason": "control_episode_read_contract_missing"},
+        "coverage": {"scope": "local_partial", "fleet_limit": 100,
+                     "fleet_truncated": len(fleet) == 100,
+                     "gaps": ["host_session_trace_task_join", "authority_stage_receipts",
+                              "tokenomics_canonical_window", "remote_hosts", "archive_runtime",
+                              "memory_harness_binding_unqualified", "independent_behavior_qualification",
+                              "receipt_integrity_not_deployment", "shadow_activation_unproven"],
+                     "next_action": "qualify_existing_source_owned_read_contract"},
     }
 
 
 @router.get("/snapshot")
-async def snapshot():
+def snapshot():
     return build_snapshot()
 
 
 @router.get("/health")
-async def health():
+def health():
     snap = build_snapshot()
     return {"schema": SCHEMA, "status": snap["status"], "sources": snap["sources"]}
