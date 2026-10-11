@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CompanyOS · Motion lab</title><link rel="icon" href="data:,">
+<link rel="stylesheet" href="/motion-lab/lab.css"><script type="module" src="/motion-lab/lab.mjs"></script>
+</head>
+<body>
+<header class="lab-header">
+ <div><span class="eyebrow">COMPANYOS / DESIGN EXPLORATION 02</span><h1>Make the relationship visible.</h1><p>Three question-led motion proposals. One faithful reference. Nothing here can act on the network.</p></div>
+ <div class="header-links"><span class="scope-badge">PRIVATE · LOCAL VIEW ONLY</span><a href="http://127.0.0.1:18748/video-replica" target="_blank" rel="noopener noreferrer">Original replica ↗</a><a href="http://127.0.0.1:18747/design-chooser/" target="_blank" rel="noopener noreferrer">Existing cockpit ↗</a></div>
+</header>
+<nav class="variant-strip" aria-label="Motion proposals">
+ <button id="baseline-toggle" aria-pressed="false"><span class="variant-number">00 / OBSERVED</span><strong>Faithful reference</strong><small>Open beside the proposal ↗</small></button>
+ <button data-variant="trace" aria-pressed="true"><span class="variant-number">01 / PROPOSAL</span><strong>Evidence trace</strong><small>Why should I trust this?</small></button>
+ <button data-variant="focus" aria-pressed="false"><span class="variant-number">02 / PROPOSAL</span><strong>Context lens</strong><small>What does this source explain?</small></button>
+ <button data-variant="compare" aria-pressed="false"><span class="variant-number">03 / PROPOSAL</span><strong>Time &amp; hypothesis</strong><small>What changed? What is still unknown?</small></button>
+</nav>
+<section class="motion-bar" aria-label="Playback and view lifecycle">
+ <button id="play" aria-pressed="false">Play reveal</button><label class="scrub-label">Reveal <input id="scrub" aria-label="Reveal phase" type="range" min="0" max="1000" value="1000"><output id="phase-value">100%</output></label>
+ <button id="motion-off" aria-pressed="false">Motion off</button><span class="toolbar-divider"></span>
+ <button id="enter-lens">Enter question lens</button><button id="back" disabled>Back</button><button id="restore" disabled>Restore cockpit</button><button id="pin" disabled>Pin recipe</button><button id="discard" disabled>Discard</button><button id="recall" disabled>Recall pin</button>
+</section>
+<div id="comparison-layout">
+ <aside id="reference-panel" hidden><header><span class="eyebrow">00 · OBSERVED REFERENCE</span><p>Exact unchanged replica from <code>9478d88</code>. Fixture numbers; not CompanyOS telemetry.</p></header><iframe title="Faithful reference fixture" id="reference-frame" loading="lazy" src="about:blank"></iframe><p class="fine">Ten rings / six metric cards / fourteen lanes. Measured reference flight tracks live in the replica; the proposals at right are new, not observed interactions.</p></aside>
+ <main id="cockpit" class="cockpit variant-trace" data-phase="1">
+  <header class="cockpit-header"><div class="brand"><span class="star">✦</span><div><span class="eyebrow">Z0INTELLIGENCE · NORTH STAR / READ CONTRACTS</span><h2 id="question">Why should I trust this summary?</h2></div></div><div class="cockpit-state"><span id="transport" class="status-label">Awaiting snapshot</span><button id="refresh">Refresh GET</button></div></header>
+  <div class="scene-meta"><span id="scene-status">Quiet cockpit · revision 1</span><span id="snapshot-at">No snapshot received</span><span>Not listening · not sharing</span></div>
+  <div class="scene-upper">
+   <section class="ring-stage" aria-label="Source ring index"><svg id="ring-map" viewBox="0 0 540 490" aria-labelledby="ring-title"><title id="ring-title">Ten selectable source categories. Arc lengths are layout, not progress.</title></svg><div class="ring-caption"><span class="key-dot"></span><b>Source facets, not completion.</b> Fixed arcs preserve the reference geometry.<br>Enter a ring or choose a binding below. Unknown never becomes green.</div></section>
+   <section class="instrument-pane" aria-label="Related source facts">
+    <div class="instrument-heading"><div><span class="eyebrow" id="proposal-title">01 · EVIDENCE TRACE</span><h3 id="selected-title">Dispatch readiness</h3></div><span id="selection-badge">SELECTED SOURCE</span></div>
+    <div id="metric-strip" class="metric-strip"></div>
+    <article id="evidence" class="evidence" data-source="z0_readiness" tabindex="-1">
+     <header><div><span class="eyebrow">LINKED PANE / EXACT BINDING</span><h4 id="evidence-title">Dispatch readiness</h4></div><button id="source-challenge">Show provenance</button></header>
+     <div id="facts" class="facts"></div>
+     <section id="compare-panel" hidden aria-label="Local snapshot comparison"><div class="compare-actions"><button id="capture-anchor">Capture A now</button><label><input type="checkbox" id="hypothesis"> Assume selected source withheld</label></div><div class="comparison-labels"><div><b>A · held in this tab</b><small id="anchor-at">Not captured</small></div><div><b id="b-label">B · latest received</b><small id="current-at">Not received</small></div></div><div id="compare-rows"></div><p id="compare-note"></p></section>
+     <details id="provenance"><summary>Provenance · observation / coverage / revision</summary><dl id="source-meta"></dl><p class="fine">Snapshot digest ≠ producer revision. A successful GET ≠ fresh observation. No raw prompts, private text, or source payload is rendered.</p></details>
+     <p id="boundary" class="boundary"></p>
+    </article>
+   </section>
+   <svg id="link-overlay" aria-hidden="true"><path id="binding-path"></path><circle id="binding-pulse" r="4"></circle></svg>
+  </div>
+  <div class="reveal-caption"><span id="phase-step">03 / Check the source boundary</span><span id="motion-meaning">Motion traces selection → related card → provenance, not a causal or runtime event.</span></div>
+  <section class="lane-section"><header><span class="eyebrow">SOURCE BINDINGS / FOURTEEN FIXED INSPECTION ROWS</span><span>No worker/task join available here; these are not live agent lanes.</span></header><div id="lanes" class="lanes"></div></section>
+  <footer class="cockpit-footer"><span>Local view only · canonical facts remain at their source</span><span>Objective progress, PR dependencies, RevOps feeds and historical windows are unbound.</span></footer>
+ </main>
+</div>
+<section class="explanation"><article><span class="eyebrow">WHY THIS MOTION EXISTS</span><h3 id="explain-title">Follow one binding, not a network light show.</h3><p id="explain-text"></p></article><article><span class="eyebrow">INTERACTION CONTRACT</span><p>Click or Enter/Space on any ring, card, or binding row. Every selection shares one canonical source ID with the evidence pane. Use the reveal slider with arrow keys. Escape restores a temporary lens. No text is sent to a model.</p><div class="quiet-controls"><button id="equal-table" aria-pressed="false">Equal-information table</button><button id="outage" aria-pressed="false">Preview source outage</button><button id="forget-pin">Forget saved pin</button></div></article></section>
+<section id="table-control" hidden><h3>Static control · same facts, without motion</h3><p>Equal-information alternative to rings; not a benchmark result.</p><div id="static-table"></div></section>
+<details class="gallery" id="gallery"><summary>Compare actual browser captures &amp; motion tour</summary><p id="gallery-note">Historical captures of this candidate, not current telemetry. Open a capture to inspect; use a proposal tab to interact.</p><div id="capture-gallery"></div></details>
+<footer class="lab-footer"><span>Native SVG + CSS. No new libraries. Reference creator unverified; do not infer authorship.</span><span id="notice" role="status" aria-live="polite">Selection is local; no backend action is possible.</span></footer>
+</body></html>
