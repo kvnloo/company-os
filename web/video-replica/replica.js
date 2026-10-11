@@ -1,5 +1,6 @@
 import { fixture, issueBindings } from './bindings.mjs';
 import charts from './chart-points.mjs';
+import { mountReferenceMotion } from './reference-motion.mjs';
 const $=s=>document.querySelector(s);
 const NS='http://www.w3.org/2000/svg';
 function element(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,String(v));if(parent)parent.append(e);return e;}
@@ -70,14 +71,9 @@ drawChart($('#lane-spark'),'lanes','#86e7c0');
 $('#lane-totals').innerHTML=fixture.totals.map(([value,unit])=>`<span class="lane-total"><b>${value}</b>${unit}</span>`).join('');
 $('#lane-columns').innerHTML=fixture.lanes.map(column=>`<div class="lane-column">${column.map(([role,name,detail,rate,state,time,mix],i)=>`<div class="lane-row ${i===0?'featured':''}"><i class="lane-dot ${role}"></i><div class="lane-copy"><div class="lane-name"><em>${role}</em>${name}</div><div class="lane-detail">${detail}</div></div><div class="lane-mix">${mix.map(([kind,percent])=>`<i class="${kind}" style="width:${percent}%"></i>`).join('')}</div><div class="lane-rate"><b>${rate}</b>/min</div><div class="lane-state ${state}"><i></i>${state} ${time}</div></div>`).join('')}</div>`).join('');
 $('#binding-map').innerHTML=issueBindings.map(b=>`<article><h3>${b.widget}</h3><p><b>Region:</b> ${b.region}</p><p>${b.meaning}</p><p><b>Existing owner / adapter slot:</b> ${b.source}</p><p><b>Guard:</b> ${b.guard}</p><small>Issue #5 body lines ${b.issueLines} · <code>${b.id}</code> · unconnected</small></article>`).join('');
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-let playing=false,start=0,elapsed=0,animation=0;
+
 function updateMotion(t){for(const p of satellites){let a=p.a;if(p.track){const end=sampleTimes.findIndex(x=>x>=t);const j=Math.max(1,end<0?sampleTimes.length-1:end),f=(t-sampleTimes[j-1])/(sampleTimes[j]-sampleTimes[j-1]);a=p.track[j-1]+(p.track[j]-p.track[j-1])*f;}const [x,y]=polar(radii[p.i],a);p.g.setAttribute('transform',`translate(${x} ${y})`);p.trail.setAttribute('d',arc(radii[p.i],a-10,a));} $('#replica-frame').dataset.motionSeconds=t.toFixed(3);}
-function tick(now){if(!playing)return;elapsed=(now-start)/1000;updateMotion(elapsed%1.5);animation=requestAnimationFrame(tick);}
-function setPlaying(value){playing=value;$('#motion').setAttribute('aria-pressed',String(value));$('#motion').textContent=value?'Pause ring motion':'Play measured ring motion';$('#motion-note').textContent=value?'Six measured flight tracks replay 0–1.5 s in a loop. Other glows and all metric values remain frozen to the first frame. No camera movement, polling, or live activity inference.':'Paused reference fixture. Six matched ring-flight tracks are available; remaining event-ripple choreography is not reconstructed. Hover/focus P4 for its observed tooltip.';cancelAnimationFrame(animation);if(value){start=performance.now()-elapsed*1000;animation=requestAnimationFrame(tick);}}
-$('#motion').addEventListener('click',()=>setPlaying(!playing));
-reduced.addEventListener('change',e=>{if(e.matches)setPlaying(false);});
-$('#reset').addEventListener('click',()=>{setPlaying(false);elapsed=0;updateMotion(0);tooltip.hidden=true;setView('replica');});
+
 updateMotion(0);
 const native=new URLSearchParams(location.search).has('native');if(native)document.body.classList.add('native');
 let view='replica';
@@ -87,3 +83,4 @@ for(const b of document.querySelectorAll('button[data-view]'))b.addEventListener
 $('#overlay-opacity').addEventListener('input',e=>{$('#original-overlay').style.opacity=String(Number(e.target.value)/100);});
 addEventListener('resize',resize);resize();
 window.replicaReceipt=Object.freeze({mode:fixture.mode,width:1496,height:1080,frameSeconds:0,sourceSha256:fixture.sourceSha256,issueBindingSlots:issueBindings.length,liveConnected:false});
+mountReferenceMotion({resetInitial:()=>updateMotion(0),setView,satellites});

@@ -1,0 +1,20 @@
+{
+  "url": "http://127.0.0.1:18749/motion-reference",
+  "served_sha256": {
+    "motion-timeline.mjs": "ce90957b03309c78863cc396f38d9f3121d1fcceb8f24d395525ee5de99ef412",
+    "reference-motion.mjs": "7bb7d0d950ca9414f9dd2d23dc71d561a3b50fa7ab3b94e8eb9d58d30ec2eb10",
+    "motion-model.mjs": "07183a923e6153e922cc680bdf737a3bcd4142ddad302ac9b78ca6d92a57d992",
+    "observed-states.mjs": "79687c149e50b23a567589de9d2352ce8c9595cf11367283976f02de03be3d30"
+  },
+  "state": {
+    "state": {
+      "time": 11,
+      "playing": false,
+      "camera": true
+    },
+    "live": false,
+    "samples": 304,
+    "source": "84a29e4fafea04c7a4b945f7db4f6c5b09877ba8996572d244662996093063b5"
+  },
+  "errors": []
+}

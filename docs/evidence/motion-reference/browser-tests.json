@@ -1,0 +1,155 @@
+{
+  "checks": [
+    {
+      "name": "exact motion-reference route is served",
+      "passed": true
+    },
+    {
+      "name": "full-clip scrub control exists",
+      "passed": true
+    },
+    {
+      "name": "starts paused under reduced motion",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 0.5s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 2.5s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 4s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 5s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 6s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 7s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 8.5s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 9s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 10.5s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 11s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 12s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 14s",
+      "passed": true
+    },
+    {
+      "name": "scrub reaches 15.133333s",
+      "passed": true
+    },
+    {
+      "name": "observed late summary is not frozen to first frame",
+      "passed": true
+    },
+    {
+      "name": "observed lane reorder is replayed",
+      "passed": true
+    },
+    {
+      "name": "keyboard scrub advances one measured sample and retains focus",
+      "passed": true
+    },
+    {
+      "name": "play advances reference timeline",
+      "passed": true
+    },
+    {
+      "name": "pause freezes the entire timeline",
+      "passed": true
+    },
+    {
+      "name": "camera can be removed independently",
+      "passed": true
+    },
+    {
+      "name": "preference change pauses",
+      "passed": true
+    },
+    {
+      "name": "end stops without inventing a periodic loop",
+      "passed": true
+    },
+    {
+      "name": "reset restores exact initial component pixels",
+      "passed": true
+    },
+    {
+      "name": "reset restores exact clock and initial summary state",
+      "passed": true
+    },
+    {
+      "name": "side-by-side fits both full frames",
+      "passed": true
+    },
+    {
+      "name": "comparison-only source video seeks to same time",
+      "passed": true
+    },
+    {
+      "name": "moving original comparison visible outside replica root",
+      "passed": true
+    },
+    {
+      "name": "composition raster restriction remains intact",
+      "passed": true
+    },
+    {
+      "name": "no operational or external requests",
+      "passed": true
+    },
+    {
+      "name": "no page errors",
+      "passed": true
+    }
+  ],
+  "count": 32,
+  "errors": [],
+  "requests": [
+    "http://127.0.0.1:29237/video-replica?native=1",
+    "http://127.0.0.1:29237/video-replica/replica.css",
+    "http://127.0.0.1:29237/video-replica/motion.css",
+    "http://127.0.0.1:29237/video-replica/assets/tahoe-day.jpg",
+    "http://127.0.0.1:29237/video-replica/assets/original-frame.png",
+    "http://127.0.0.1:29237/video-replica/replica.js",
+    "http://127.0.0.1:29237/video-replica/assets/InterVariable.woff2",
+    "http://127.0.0.1:29237/video-replica/bindings.mjs",
+    "http://127.0.0.1:29237/video-replica/chart-points.mjs",
+    "http://127.0.0.1:29237/video-replica/reference-motion.mjs",
+    "http://127.0.0.1:29237/video-replica/motion-timeline.mjs",
+    "http://127.0.0.1:29237/video-replica/motion-model.mjs",
+    "http://127.0.0.1:29237/video-replica/observed-states.mjs",
+    "http://127.0.0.1:29237/video-replica/assets/reference.mp4",
+    "http://127.0.0.1:29237/video-replica/assets/reference.mp4",
+    "http://127.0.0.1:29237/video-replica/assets/reference.mp4"
+  ],
+  "browser": "153.0.8010.52",
+  "source": "real isolated Chromium; no everyday browser attached",
+  "jev": "no_key; deterministic acceptance harness"
+}

@@ -1,0 +1,122 @@
+{
+  "source_sha256": "84a29e4fafea04c7a4b945f7db4f6c5b09877ba8996572d244662996093063b5",
+  "decoded_frames": 909,
+  "analyzed_samples": 304,
+  "first_pts_s": 0.0,
+  "last_pts_s": 15.133333,
+  "component_fits": {
+    "ring": {
+      "available": 254,
+      "median_p95_residual_px": 1.150088908227707
+    },
+    "outcome": {
+      "available": 292,
+      "median_p95_residual_px": 0.9738266386059554
+    },
+    "metrics": {
+      "available": 304,
+      "median_p95_residual_px": 0.9289917052181832
+    },
+    "lanes": {
+      "available": 259,
+      "median_p95_residual_px": 1.1498118675396907
+    },
+    "header": {
+      "available": 204,
+      "median_p95_residual_px": 0.5045090040571106
+    }
+  },
+  "pointer_positive_samples": 220,
+  "linked_glow_tracks": 304,
+  "glow_identity": "geometric only; tracks split across >110ms gaps; not item IDs or backend events",
+  "recording_window_zoom": [
+    {
+      "first_positive_s": 1.9,
+      "last_positive_s": 3.65,
+      "samples": 36,
+      "sample_spacing_s": 0.05,
+      "boundary_note": "Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these."
+    },
+    {
+      "first_positive_s": 6.2,
+      "last_positive_s": 8.1,
+      "samples": 39,
+      "sample_spacing_s": 0.05,
+      "boundary_note": "Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these."
+    }
+  ],
+  "content_reflow": [
+    {
+      "first_positive_s": 10.1,
+      "last_positive_s": 15.133333,
+      "samples": 102,
+      "sample_spacing_s": 0.05,
+      "boundary_note": "Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these."
+    }
+  ],
+  "tooltip_template_positives": [
+    {
+      "first_positive_s": 4.05,
+      "last_positive_s": 4.1,
+      "samples": 2,
+      "sample_spacing_s": 0.05,
+      "boundary_note": "Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these."
+    },
+    {
+      "first_positive_s": 4.95,
+      "last_positive_s": 5.05,
+      "samples": 3,
+      "sample_spacing_s": 0.05,
+      "boundary_note": "Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these."
+    },
+    {
+      "first_positive_s": 5.2,
+      "last_positive_s": 5.2,
+      "samples": 1,
+      "sample_spacing_s": 0.05,
+      "boundary_note": "Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these."
+    }
+  ],
+  "tooltip_boundary": "Positive detections only; false negatives between these samples mean no complete appearance/hover duration is established.",
+  "measurement_grid_spacing_s": 0.05,
+  "grid_is_not_event_timing_accuracy": true,
+  "ocr_time_spacing_s": 0.5,
+  "observed_late_browser_chrome": [
+    {
+      "frame": 630,
+      "pts_s": 10.5,
+      "text": "50%",
+      "confidence": "human-readable native frame",
+      "causality": "Visible browser zoom indicator; exact keyboard/wheel/menu input unseen"
+    },
+    {
+      "frame": 660,
+      "pts_s": 11,
+      "text": "67%",
+      "confidence": "human-readable native frame",
+      "causality": "Browser content reflows within same fixed shell, not recorder-only zoom"
+    }
+  ],
+  "unobservable": [
+    "True backend records, transport, store and event dispatch",
+    "Input commands, clicks or wheel ticks not visible",
+    "Full identity through occlusion/glow collisions",
+    "Source CSS easing, timers or animation library",
+    "Hidden lower-panel details before they enter viewport"
+  ],
+  "not_fully_reconstructed": [
+    "Expanding transient event rings and all event-label lifetimes",
+    "All per-lane tool mix/status/timer transitions",
+    "All late sparkline data after browser zoom",
+    "Complete lower LIVE FEED text",
+    "Exact zoom popup lifetimes and browser UI controls"
+  ],
+  "source_binding_status": "Issue #5 supplies future CompanyOS ownership contract; video supplies fixture pixels only.",
+  "scripts": {
+    "motion_analysis.py": "48aba43536af07c6ce8ae071e4aa72af4b88ba191552ab7b0d6e1a6c3fa3ad0b",
+    "motion_publish.py": "76d26863524f666cbc7ea2d7149d79633cc1985f50051c13fd7ccc79c8d5ea08",
+    "reference_motion.py": "01170b5844a75acc802aadadef974ffdbedf32b352482f1c00869544aa14e275",
+    "verify_motion_reference.py": "c4d78ef3c848e3288532c86326260b7ba4b4e17d30f48f61905bbee732389cd4",
+    "measure_motion_fidelity.py": "78dd26f614cd307fa686d86fa14f478ef148c0d909f40a59d21e8ad0a7ec5e65"
+  }
+}

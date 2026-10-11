@@ -1,0 +1,138 @@
+[
+  {
+    "start_s": 1.85,
+    "end_s": 2.35,
+    "sample_count": 11,
+    "start_scale": 1.0,
+    "end_scale": 1.9982980121103058,
+    "candidates": [
+      {
+        "model": "power-out",
+        "power": 7.999999855774333,
+        "rmse_scale": 0.06556918462888751,
+        "max_error_scale": 0.20526655478677663
+      },
+      {
+        "model": "power-in",
+        "power": 0.2000000000000064,
+        "rmse_scale": 0.08610435886880088,
+        "max_error_scale": 0.14394653762433343
+      },
+      {
+        "model": "linear",
+        "power": null,
+        "rmse_scale": 0.4284004446241084,
+        "max_error_scale": 0.6740001991342678
+      },
+      {
+        "model": "smoothstep",
+        "power": null,
+        "rmse_scale": 0.45771278261663595,
+        "max_error_scale": 0.7458776560062097
+      }
+    ],
+    "interpretation": "Approximate image-space fit; not identification of source CSS easing or input."
+  },
+  {
+    "start_s": 2.95,
+    "end_s": 3.75,
+    "sample_count": 17,
+    "start_scale": 2.0017640523947873,
+    "end_scale": 1.0,
+    "candidates": [
+      {
+        "model": "smoothstep",
+        "power": null,
+        "rmse_scale": 0.10072694709501526,
+        "max_error_scale": 0.18643670997099304
+      },
+      {
+        "model": "power-out",
+        "power": 1.4713720403933288,
+        "rmse_scale": 0.1291623390989691,
+        "max_error_scale": 0.2915023211871192
+      },
+      {
+        "model": "power-in",
+        "power": 0.8544096798494193,
+        "rmse_scale": 0.1430263805389816,
+        "max_error_scale": 0.2522339007480739
+      },
+      {
+        "model": "linear",
+        "power": null,
+        "rmse_scale": 0.14660311805554974,
+        "max_error_scale": 0.22881432393756174
+      }
+    ],
+    "interpretation": "Approximate image-space fit; not identification of source CSS easing or input."
+  },
+  {
+    "start_s": 6.15,
+    "end_s": 6.9,
+    "sample_count": 16,
+    "start_scale": 1.0,
+    "end_scale": 1.6809340243305209,
+    "candidates": [
+      {
+        "model": "power-out",
+        "power": 2.9848459394458797,
+        "rmse_scale": 0.022404143196163913,
+        "max_error_scale": 0.06050779360943228
+      },
+      {
+        "model": "power-in",
+        "power": 0.3490954009484744,
+        "rmse_scale": 0.07977098288719732,
+        "max_error_scale": 0.19834528002824217
+      },
+      {
+        "model": "linear",
+        "power": null,
+        "rmse_scale": 0.18347827558741764,
+        "max_error_scale": 0.27920229979494093
+      },
+      {
+        "model": "smoothstep",
+        "power": null,
+        "rmse_scale": 0.19240042085064768,
+        "max_error_scale": 0.31511255208476757
+      }
+    ],
+    "interpretation": "Approximate image-space fit; not identification of source CSS easing or input."
+  },
+  {
+    "start_s": 7.6,
+    "end_s": 8.2,
+    "sample_count": 13,
+    "start_scale": 1.6817750018088031,
+    "end_scale": 1.0,
+    "candidates": [
+      {
+        "model": "power-out",
+        "power": 1.752121578957114,
+        "rmse_scale": 0.040824054791953834,
+        "max_error_scale": 0.09299849892326069
+      },
+      {
+        "model": "power-in",
+        "power": 0.6264637007022348,
+        "rmse_scale": 0.06922190737467124,
+        "max_error_scale": 0.13272892642871417
+      },
+      {
+        "model": "smoothstep",
+        "power": null,
+        "rmse_scale": 0.09856826957097325,
+        "max_error_scale": 0.17270663165849748
+      },
+      {
+        "model": "linear",
+        "power": null,
+        "rmse_scale": 0.10212653011034799,
+        "max_error_scale": 0.16488840048084996
+      }
+    ],
+    "interpretation": "Approximate image-space fit; not identification of source CSS easing or input."
+  }
+]

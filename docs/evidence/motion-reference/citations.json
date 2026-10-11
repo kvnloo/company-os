@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html",
+      "title": "",
+      "accessed": "2026-10-10"
+    },
+    {
+      "id": 2,
+      "url": "https://docs.opencv.org/4.x/d1/de0/tutorial_py_feature_homography.html",
+      "title": "",
+      "accessed": "2026-10-10"
+    },
+    {
+      "id": 3,
+      "url": "https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html",
+      "title": "",
+      "accessed": "2026-10-10"
+    },
+    {
+      "id": 4,
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html",
+      "title": "",
+      "accessed": "2026-10-10"
+    },
+    {
+      "id": 5,
+      "url": "https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html",
+      "title": "",
+      "accessed": "2026-10-10"
+    },
+    {
+      "id": 6,
+      "url": "https://github.com/kvnloo/company-os/issues/5",
+      "title": "",
+      "accessed": "2026-10-10"
+    },
+    {
+      "id": 7,
+      "url": "https://github.com/user-attachments/assets/18dc5eb2-e513-4486-a33b-5937f8d176ef",
+      "title": "",
+      "accessed": "2026-10-10"
+    }
+  ]
+}

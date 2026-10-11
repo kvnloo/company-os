@@ -1,0 +1,19 @@
+# Exact environment exercised for the offline analyzer and browser evidence.
+greenlet==3.5.6
+imageio==2.38.1
+iniconfig==2.3.1
+lazy-loader==0.6
+networkx==3.7
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+packaging==26.3
+pillow==12.3.0
+playwright==1.63.0
+pluggy==1.6.0
+pyee==13.0.1
+pygments==2.21.0
+pytest==9.1.1
+scikit-image==0.26.0
+scipy==1.18.1
+tifffile==2026.9.20
+typing-extensions==4.16.0

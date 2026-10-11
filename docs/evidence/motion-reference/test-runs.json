@@ -1,0 +1,82 @@
+[
+  {
+    "command": [
+      "/workspace/zer0/data/operations/company-os-recovery/motion-analysis/.venv/bin/python",
+      "scripts/motion_publish.py",
+      "--tracks",
+      "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/tracks.json",
+      "--out",
+      "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis",
+      "--module",
+      "web/video-replica/motion-timeline.mjs"
+    ],
+    "cwd": "/mnt/zer0models/z0-wt/company-os-motion-reference",
+    "exit_code": 0,
+    "stdout": "{\"samples\": 304, \"flights\": 304, \"duration\": 15.133333}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/zer0/data/operations/company-os-recovery/motion-analysis/.venv/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_motion_analysis.py",
+      "tests/test_motion_publish.py",
+      "tests/test_reference_motion_server.py",
+      "tests/test_video_replica.py",
+      "-q"
+    ],
+    "cwd": "/mnt/zer0models/z0-wt/company-os-motion-reference",
+    "exit_code": 0,
+    "stdout": ".........                                                                [100%]\n9 passed in 93.37s (0:01:33)\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/motion-model.test.mjs",
+      "tests/video-replica-bindings.test.mjs"
+    ],
+    "cwd": "/mnt/zer0models/z0-wt/company-os-motion-reference",
+    "exit_code": 0,
+    "stdout": "\u2714 exact sample preserves that frame and discrete observations, including endpoint (1.297606ms)\n\u2714 seek interpolates observed transforms and never extrapolates duration (0.187185ms)\n\u2714 play reaches end without invented loop and pause freezes (0.175606ms)\n\u2714 reference content is isolated from the issue-defined adapter seam (1.062424ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 54.004881\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/zer0/data/operations/company-os-recovery/motion-analysis/.venv/bin/python",
+      "scripts/verify_motion_reference.py",
+      "--out",
+      "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser"
+    ],
+    "cwd": "/mnt/zer0models/z0-wt/company-os-motion-reference",
+    "exit_code": 0,
+    "stdout": "{\"passed\": 32, \"errors\": []}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/zer0/data/operations/company-os-recovery/motion-analysis/.venv/bin/python",
+      "scripts/measure_motion_fidelity.py",
+      "--out",
+      "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis"
+    ],
+    "cwd": "/mnt/zer0models/z0-wt/company-os-motion-reference",
+    "exit_code": 0,
+    "stdout": "[\n  {\n    \"t\": 0.0,\n    \"candidate_ssim\": 0.8291660095098671,\n    \"candidate_mae\": 5.942434727598504,\n    \"static_initial_baseline_ssim\": 0.8291660095098671,\n    \"static_initial_baseline_mae\": 5.942434727598504\n  },\n  {\n    \"t\": 0.5,\n    \"candidate_ssim\": 0.8243689849878176,\n    \"candidate_mae\": 6.0972422325986875,\n    \"static_initial_baseline_ssim\": 0.822702465482545,\n    \"static_initial_baseline_mae\": 6.220269643439201\n  },\n  {\n    \"t\": 2.5,\n    \"candidate_ssim\": 0.7989663905381202,\n    \"candidate_mae\": 6.2614423190049395,\n    \"static_initial_baseline_ssim\": 0.5205292767240994,\n    \"static_initial_baseline_mae\": 18.98280698810564\n  },\n  {\n    \"t\": 4.0,\n    \"candidate_ssim\": 0.8011303656869967,\n    \"candidate_mae\": 7.175218571172328,\n    \"static_initial_baseline_ssim\": 0.7995701367239344,\n    \"static_initial_baseline_mae\": 7.311086134303861\n  },\n  {\n    \"t\": 5.0,\n    \"candidate_ssim\": 0.8012783271380807,\n    \"candidate_mae\": 6.737781133734891,\n    \"static_initial_baseline_ssim\": 0.7989713318602227,\n    \"static_initial_baseline_mae\": 6.9818170771928\n  },\n  {\n    \"t\": 6.0,\n    \"candidate_ssim\": 0.7790730713330632,\n    \"candidate_mae\": 7.764050900611594,\n    \"static_initial_baseline_ssim\": 0.5553197182002639,\n    \"static_initial_baseline_mae\": 18.451103319118733\n  },\n  {\n    \"t\": 7.0,\n    \"candidate_ssim\": 0.7932058333180739,\n    \"candidate_mae\": 8.554830119136478,\n    \"static_initial_baseline_ssim\": 0.5041186410156088,\n    \"static_initial_baseline_mae\": 25.917938651561002\n  },\n  {\n    \"t\": 8.5,\n    \"candidate_ssim\": 0.7791743196431353,\n    \"candidate_mae\": 7.814061170997587,\n    \"static_initial_baseline_ssim\": 0.5433392075415626,\n    \"static_initial_baseline_mae\": 20.031221009063014\n  },\n  {\n    \"t\": 9.0,\n    \"candidate_ssim\": 0.7340034865020031,\n    \"candidate_mae\": 9.000194076542824,\n    \"static_initial_baseline_ssim\": 0.5228424638413919,\n    \"static_initial_baseline_mae\": 20.8115755447162\n  },\n  {\n    \"t\": 10.5,\n    \"candidate_ssim\": 0.7583792832248512,\n    \"candidate_mae\": 6.499290475446545,\n    \"static_initial_baseline_ssim\": 0.5905668769355031,\n    \"static_initial_baseline_mae\": 15.45756425982823\n  },\n  {\n    \"t\": 11.0,\n    \"candidate_ssim\": 0.7443462728074112,\n    \"candidate_mae\": 8.406813364424154,\n    \"static_initial_baseline_ssim\": 0.5771261536002769,\n    \"static_initial_baseline_mae\": 16.647299997492677\n  },\n  {\n    \"t\": 12.0,\n    \"candidate_ssim\": 0.7398290990169035,\n    \"candidate_mae\": 8.418016041089258,\n    \"static_initial_baseline_ssim\": 0.5781725784589321,\n    \"static_initial_baseline_mae\": 16.564445225572392\n  },\n  {\n    \"t\": 14.0,\n    \"candidate_ssim\": 0.7215847563357606,\n    \"candidate_mae\": 8.671770518109632,\n    \"static_initial_baseline_ssim\": 0.5570909166849277,\n    \"static_initial_baseline_mae\": 17.04840413631358\n  },\n  {\n    \"t\": 15.133,\n    \"candidate_ssim\": 0.7119686305160945,\n    \"candidate_mae\": 8.865922521751038,\n    \"static_initial_baseline_ssim\": 0.5493271033426932,\n    \"static_initial_baseline_mae\": 17.248418939170385\n  }\n]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/zer0/data/operations/company-os-recovery/motion-analysis/.venv/bin/python",
+      "scripts/motion_summary.py",
+      "--out",
+      "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis"
+    ],
+    "cwd": "/mnt/zer0models/z0-wt/company-os-motion-reference",
+    "exit_code": 0,
+    "stdout": "{\n  \"source_sha256\": \"84a29e4fafea04c7a4b945f7db4f6c5b09877ba8996572d244662996093063b5\",\n  \"decoded_frames\": 909,\n  \"analyzed_samples\": 304,\n  \"first_pts_s\": 0.0,\n  \"last_pts_s\": 15.133333,\n  \"component_fits\": {\n    \"ring\": {\n      \"available\": 254,\n      \"median_p95_residual_px\": 1.150088908227707\n    },\n    \"outcome\": {\n      \"available\": 292,\n      \"median_p95_residual_px\": 0.9738266386059554\n    },\n    \"metrics\": {\n      \"available\": 304,\n      \"median_p95_residual_px\": 0.9289917052181832\n    },\n    \"lanes\": {\n      \"available\": 259,\n      \"median_p95_residual_px\": 1.1498118675396907\n    },\n    \"header\": {\n      \"available\": 204,\n      \"median_p95_residual_px\": 0.5045090040571106\n    }\n  },\n  \"pointer_positive_samples\": 220,\n  \"linked_glow_tracks\": 304,\n  \"glow_identity\": \"geometric only; tracks split across >110ms gaps; not item IDs or backend events\",\n  \"recording_window_zoom\": [\n    {\n      \"first_positive_s\": 1.9,\n      \"last_positive_s\": 3.65,\n      \"samples\": 36,\n      \"sample_spacing_s\": 0.05,\n      \"boundary_note\": \"Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these.\"\n    },\n    {\n      \"first_positive_s\": 6.2,\n      \"last_positive_s\": 8.1,\n      \"samples\": 39,\n      \"sample_spacing_s\": 0.05,\n      \"boundary_note\": \"Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these.\"\n    }\n  ],\n  \"content_reflow\": [\n    {\n      \"first_positive_s\": 10.1,\n      \"last_positive_s\": 15.133333,\n      \"samples\": 102,\n      \"sample_spacing_s\": 0.05,\n      \"boundary_note\": \"Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these.\"\n    }\n  ],\n  \"tooltip_template_positives\": [\n    {\n      \"first_positive_s\": 4.05,\n      \"last_positive_s\": 4.1,\n      \"samples\": 2,\n      \"sample_spacing_s\": 0.05,\n      \"boundary_note\": \"Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these.\"\n    },\n    {\n      \"first_positive_s\": 4.95,\n      \"last_positive_s\": 5.05,\n      \"samples\": 3,\n      \"sample_spacing_s\": 0.05,\n      \"boundary_note\": \"Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these.\"\n    },\n    {\n      \"first_positive_s\": 5.2,\n      \"last_positive_s\": 5.2,\n      \"samples\": 1,\n      \"sample_spacing_s\": 0.05,\n      \"boundary_note\": \"Threshold-positive samples only, not guaranteed event onset/offset. Rejected or occluded samples may precede/follow these.\"\n    }\n  ],\n  \"tooltip_boundary\": \"Positive detections only; false negatives between these samples mean no complete appearance/hover duration is established.\",\n  \"measurement_grid_spacing_s\": 0.05,\n  \"grid_is_not_event_timing_accuracy\": true,\n  \"ocr_time_spacing_s\": 0.5,\n  \"observed_late_browser_chrome\": [\n    {\n      \"frame\": 630,\n      \"pts_s\": 10.5,\n      \"text\": \"50%\",\n      \"confidence\": \"human-readable native frame\",\n      \"causality\": \"Visible browser zoom indicator; exact keyboard/wheel/menu input unseen\"\n    },\n    {\n      \"frame\": 660,\n      \"pts_s\": 11,\n      \"text\": \"67%\",\n      \"confidence\": \"human-readable native frame\",\n      \"causality\": \"Browser content reflows within same fixed shell, not recorder-only zoom\"\n    }\n  ],\n  \"unobservable\": [\n    \"True backend records, transport, store and event dispatch\",\n    \"Input commands, clicks or wheel ticks not visible\",\n    \"Full identity through occlusion/glow collisions\",\n    \"Source CSS easing, timers or animation library\",\n    \"Hidden lower-panel details before they enter viewport\"\n  ],\n  \"not_fully_reconstructed\": [\n    \"Expanding transient event rings and all event-label lifetimes\",\n    \"All per-lane tool mix/status/timer transitions\",\n    \"All late sparkline data after browser zoom\",\n    \"Complete lower LIVE FEED text\",\n    \"Exact zoom popup lifetimes and browser UI controls\"\n  ],\n  \"source_binding_status\": \"Issue #5 supplies future CompanyOS ownership contract; video supplies fixture pixels only.\",\n  \"scripts\": {\n    \"motion_analysis.py\": \"48aba43536af07c6ce8ae071e4aa72af4b88ba191552ab7b0d6e1a6c3fa3ad0b\",\n    \"motion_publish.py\": \"76d26863524f666cbc7ea2d7149d79633cc1985f50051c13fd7ccc79c8d5ea08\",\n    \"reference_motion.py\": \"01170b5844a75acc802aadadef974ffdbedf32b352482f1c00869544aa14e275\",\n    \"verify_motion_reference.py\": \"c4d78ef3c848e3288532c86326260b7ba4b4e17d30f48f61905bbee732389cd4\",\n    \"measure_motion_fidelity.py\": \"78dd26f614cd307fa686d86fa14f478ef148c0d909f40a59d21e8ad0a7ec5e65\"\n  }\n}\n",
+    "stderr": ""
+  }
+]

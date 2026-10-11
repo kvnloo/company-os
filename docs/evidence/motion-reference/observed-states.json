@@ -1,0 +1,619 @@
+{
+  "summaryObservations": [
+    {
+      "t": 0,
+      "frame": 0,
+      "values": [
+        "18",
+        "16",
+        "9,847",
+        "0",
+        "3"
+      ],
+      "source_pixel_sha256_bgr": "b902c89ae4a26b998f9888261db26e4800d9bd11678d9fab38a9a856c4f8c0e1",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.0,
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 1,
+      "frame": 60,
+      "values": [
+        "19",
+        "17",
+        "9,847",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "e6d8d6acd8a9c380e6d9b4fa15ac0677526bf3c84afc3b2f4471d98c97aa9805",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.000028581531724,
+          1.0751907220835491e-05,
+          -0.03510866391543345
+        ],
+        [
+          -1.0751907220835491e-05,
+          1.000028581531724,
+          -0.026358071991077505
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 4,
+      "frame": 240,
+      "values": [
+        "19",
+        "18",
+        "9,336",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "649802d2c32152d38cae7142c31a75e4849dc274bb15a2f4378c6f47bd35c37d",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.0000794421799861,
+          -1.2918008561699278e-05,
+          -0.03438988636718091
+        ],
+        [
+          1.2918008561699278e-05,
+          1.0000794421799861,
+          -0.022091325428914545
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 5.5,
+      "frame": 330,
+      "values": [
+        "19",
+        "18",
+        "10,828",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "850c43ed33e15163ea88287f96f32c9605b8628d94343da60dbb80cb8fc89b57",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.9999374542464707,
+          -3.396191622453169e-05,
+          0.09241551469030183
+        ],
+        [
+          3.396191622453169e-05,
+          0.9999374542464707,
+          0.041530825959319576
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 6,
+      "frame": 360,
+      "values": [
+        "19",
+        "18",
+        "10,875",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "de36e54bd3f6a2755a127de47cb56e34e015a278acae021024242de2b7817f42",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.0001926956936096,
+          -0.00028701259592293216,
+          0.4170812810018772
+        ],
+        [
+          0.00028701259592293216,
+          1.0001926956936096,
+          -52.85601125017444
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 6.5,
+      "frame": 390,
+      "values": [
+        "19",
+        "19",
+        "10,375",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "657ea16bb9f0365a1a8ed9cd0b4680fe0182e2d0b2fe6473b100b5f7d9320052",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.5950597513636158,
+          -0.00015917003516962273,
+          -158.3184517141595
+        ],
+        [
+          0.00015917003516962273,
+          1.5950597513636158,
+          -484.44303935563175
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 7,
+      "frame": 420,
+      "values": [
+        "19",
+        "20",
+        "10,169",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "da246741e359fdf93421ceb62578a672a612341f8c6d0e53fafd726dceaa799d",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.6813604990885693,
+          8.516001145444273e-05,
+          -181.00134859317117
+        ],
+        [
+          -8.516001145444273e-05,
+          1.6813604990885693,
+          -546.8345146478042
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 8,
+      "frame": 480,
+      "values": [
+        "19",
+        "21",
+        "10,351",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "9dc249ee5beff4e787fd35444554f8d0744da606ea03c966001c8766500d19dd",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.0771658867637162,
+          -0.0009464196141863175,
+          -22.271216359287422
+        ],
+        [
+          0.0009464196141863175,
+          1.0771658867637162,
+          -108.29684841983376
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 8.5,
+      "frame": 510,
+      "values": [
+        "19",
+        "21",
+        "10,504",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "3627320f50ed6628a034f9e10022a76496f68b769ca2b5962a8ba0b9a4e8e270",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.0004903648651045,
+          -0.0002470446887422092,
+          0.1999616853718985
+        ],
+        [
+          0.0002470446887422092,
+          1.0004903648651045,
+          -119.03826687586262
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 9.5,
+      "frame": 570,
+      "values": [
+        "19",
+        "21",
+        "10,396",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "76e46790dd3c01f65a47aaab1305d32910d3cd6dfc13eff7aff4a614da5350e7",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.0000972176727283,
+          -0.0003396528404177022,
+          0.3685636034423584
+        ],
+        [
+          0.0003396528404177022,
+          1.0000972176727283,
+          -33.68404351988221
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 10,
+      "frame": 600,
+      "values": [
+        "19",
+        "21",
+        "9,507",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "97732b1dc53d51fda3d58bc7725d66ed8aa350728af95642255f0f5c2d55b6ab",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          1.000375191376486,
+          -0.0003794064349649709,
+          0.34766401828801646
+        ],
+        [
+          0.0003794064349649709,
+          1.000375191376486,
+          -4.273908883114311
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 11,
+      "frame": 660,
+      "values": [
+        "19",
+        "22",
+        "9,531",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "9443e50cbe3f463b69ea3d0e59ade7e1f08fd6cddfdb3fe7d53ec1d176e86e54",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.8884672417176683,
+          -0.001895289735987136,
+          12.805448360837856
+        ],
+        [
+          0.001895289735987136,
+          0.8884672417176683,
+          7.506450738024598
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 11.5,
+      "frame": 690,
+      "values": [
+        "19",
+        "27",
+        "9,766",
+        "0",
+        "4"
+      ],
+      "source_pixel_sha256_bgr": "15331a3a90aa5aa6369cf2b74d19b88f1432244fed9b06ac6ee4684c3510e748",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.8890616435134878,
+          -0.0013547457904970106,
+          12.315585608499596
+        ],
+        [
+          0.0013547457904970106,
+          0.8890616435134878,
+          7.493875173338813
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 12.5,
+      "frame": 750,
+      "values": [
+        "19",
+        "26",
+        "9,581",
+        "0",
+        "5"
+      ],
+      "source_pixel_sha256_bgr": "2edb8c639e0f0bca45d3f7e96d2fc2b42be9f6b3ef5400e2b1ac6930acd4d8cc",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.887549274894516,
+          -0.0004258343392600424,
+          12.324239643335458
+        ],
+        [
+          0.0004258343392600424,
+          0.887549274894516,
+          8.609510871795152
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 13,
+      "frame": 780,
+      "values": [
+        "19",
+        "25",
+        "9,487",
+        "0",
+        "5"
+      ],
+      "source_pixel_sha256_bgr": "ddd946143ae08ca6fd112c5c7c13bd92c3cb93849d19349479cec2a9ebf00d73",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.8898841008169486,
+          -9.928395435181968e-05,
+          10.891806696180248
+        ],
+        [
+          9.928395435181968e-05,
+          0.8898841008169486,
+          7.349351151417155
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 14,
+      "frame": 840,
+      "values": [
+        "19",
+        "25",
+        "9,326",
+        "0",
+        "5"
+      ],
+      "source_pixel_sha256_bgr": "9051a4246b40664a2bd5b60f84dfa13752d870f4ef3e9d78ba196113b57cf278",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.8898421297218356,
+          -0.00044423521031002375,
+          11.121705086560459
+        ],
+        [
+          0.00044423521031002375,
+          0.8898421297218356,
+          7.21415805354473
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 14.5,
+      "frame": 870,
+      "values": [
+        "19",
+        "25",
+        "9,191",
+        "0",
+        "5"
+      ],
+      "source_pixel_sha256_bgr": "ffff4e585dcb38e35e1810fe5204b36ca07f8f312560658ab04dea82f638f538",
+      "reference_frame0_crop": [
+        110,
+        648,
+        790,
+        673
+      ],
+      "source_mapping": [
+        [
+          0.8883980382381534,
+          5.3258193921294276e-05,
+          11.548442076730648
+        ],
+        [
+          -5.3258193921294276e-05,
+          0.8883980382381534,
+          8.334152372966658
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    }
+  ],
+  "laneOrders": [
+    {
+      "t": 4.5,
+      "frame": 270,
+      "left": [
+        "ltg-wave0",
+        "ltg-ops-pr106-release-owner",
+        "ltg-ops-parity-host-ltg-self-gates",
+        "xl-cap-fillgeom-camera-lighting-authoring",
+        "xl-cap-drawing-reflection-glow-shadow",
+        "xl-cap-sparkline-preset-choices",
+        "ltg-max-m6-robustness"
+      ],
+      "right": [
+        "ltg-owner-xl",
+        "ltg-m6-fix-wolfxl-xlsx-render-png-crash",
+        "xl-lambda-parameter-validation",
+        "xl-cap-custom-geometry-editing-metadata",
+        "xl-x14-data-validations-read",
+        "ltg-ops-gate-host-verda-env-parity",
+        "ltg-owner-docx"
+      ],
+      "source_pixel_sha256_bgr": "73bff965e94f6e903f06e1c4b9306ce3ad1dce0241e9e2fccca8be2faabffc37",
+      "reference_frame0_crop": [
+        102,
+        637,
+        1394,
+        1007
+      ],
+      "source_mapping": [
+        [
+          0.9999219246550163,
+          -1.8627048569538873e-05,
+          0.07499249109329435
+        ],
+        [
+          1.8627048569538873e-05,
+          0.9999219246550163,
+          0.051544832828783034
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    },
+    {
+      "t": 11,
+      "frame": 660,
+      "left": [
+        "ltg-m6-fix-wolfxl-xlsx-render-png-crash",
+        "ltg-owner-xl",
+        "ltg-ops-pr106-release-owner",
+        "xl-cap-fillgeom-camera-lighting-authoring",
+        "xl-cap-drawing-reflection-glow-shadow",
+        "xl-cap-sparkline-preset-choices",
+        "ltg-max-m6-robustness"
+      ],
+      "right": [
+        "ltg-wave0",
+        "ltg-ops-parity-host-ltg-self-gates",
+        "xl-lambda-parameter-validation",
+        "xl-cap-custom-geometry-editing-metadata",
+        "xl-x14-data-validations-read",
+        "ltg-ops-gate-host-verda-env-parity",
+        "ltg-owner-docx"
+      ],
+      "source_pixel_sha256_bgr": "9443e50cbe3f463b69ea3d0e59ade7e1f08fd6cddfdb3fe7d53ec1d176e86e54",
+      "reference_frame0_crop": [
+        102,
+        637,
+        1394,
+        1007
+      ],
+      "source_mapping": [
+        [
+          0.8884672417176683,
+          -0.001895289735987136,
+          12.805448360837856
+        ],
+        [
+          0.001895289735987136,
+          0.8884672417176683,
+          7.506450738024598
+        ]
+      ],
+      "confidence": "human-readable selected sample; no inference in gaps"
+    }
+  ],
+  "source_sha256": "84a29e4fafea04c7a4b945f7db4f6c5b09877ba8996572d244662996093063b5",
+  "method": "Manual reading of stabilized crop review and native source frames; sample-and-hold, not exact transition times."
+}

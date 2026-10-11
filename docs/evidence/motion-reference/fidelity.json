@@ -1,0 +1,537 @@
+{
+  "method": "Native RGB 1496x1080 DPR1, no alignment/resampling. Every source decoded at exact index. Fixed region boxes (not tracking crops). Static baseline is preserved original browser-native.png at t=0, not its old 1.5s loop. Flat dark areas inflate SSIM.",
+  "captures": [
+    {
+      "time_s": 0.0,
+      "frame": 0,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-000.000.png",
+      "sha256": "86135e9e598e30fe1b608ed1fdd7a6fd441b34c1f145f16451b0d218ec58e15b",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.8095728811533536,
+          "candidate_mae": 7.897549019607843,
+          "static_initial_baseline_ssim": 0.8095728811533536,
+          "static_initial_baseline_mae": 7.897549019607843
+        },
+        "dashboard": {
+          "candidate_ssim": 0.8291660095098671,
+          "candidate_mae": 5.942434727598504,
+          "static_initial_baseline_ssim": 0.8291660095098671,
+          "static_initial_baseline_mae": 5.942434727598504
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.8602691523841149,
+          "candidate_mae": 9.644479022591057,
+          "static_initial_baseline_ssim": 0.8602691523841149,
+          "static_initial_baseline_mae": 9.644479022591057
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7728321772677456,
+          "candidate_mae": 6.7940722764640595,
+          "static_initial_baseline_ssim": 0.7728321772677456,
+          "static_initial_baseline_mae": 6.7940722764640595
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.8185311012851383,
+          "candidate_mae": 6.0753796857908515,
+          "static_initial_baseline_ssim": 0.8185311012851383,
+          "static_initial_baseline_mae": 6.0753796857908515
+        }
+      }
+    },
+    {
+      "time_s": 0.5,
+      "frame": 30,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-000.500.png",
+      "sha256": "3e3d71622d269cae1b8e6f40d1dcba1c5aa90e23218e7fe964a169d49e82b4e7",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.8046287154514692,
+          "candidate_mae": 8.035864981514491,
+          "static_initial_baseline_ssim": 0.8032024995915341,
+          "static_initial_baseline_mae": 8.141145523866111
+        },
+        "dashboard": {
+          "candidate_ssim": 0.8243689849878176,
+          "candidate_mae": 6.0972422325986875,
+          "static_initial_baseline_ssim": 0.822702465482545,
+          "static_initial_baseline_mae": 6.220269643439201
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.8470299197170932,
+          "candidate_mae": 10.270578319502075,
+          "static_initial_baseline_ssim": 0.8400018596823792,
+          "static_initial_baseline_mae": 10.670365087597972
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7742044384970111,
+          "candidate_mae": 6.681488327031247,
+          "static_initial_baseline_ssim": 0.7703148029331731,
+          "static_initial_baseline_mae": 6.965601896269541
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.8115723195343466,
+          "candidate_mae": 6.2677357763699195,
+          "static_initial_baseline_ssim": 0.8129499705239076,
+          "static_initial_baseline_mae": 6.25373288566825
+        }
+      }
+    },
+    {
+      "time_s": 2.5,
+      "frame": 150,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-002.500.png",
+      "sha256": "4d6273d0a2d71bfeb84f85a3d000a43f2f936472280c7514a9e6a2071bee2515",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.809204238246214,
+          "candidate_mae": 5.847048095332409,
+          "static_initial_baseline_ssim": 0.46783836778021654,
+          "static_initial_baseline_mae": 27.63166509869941
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7989663905381202,
+          "candidate_mae": 6.2614423190049395,
+          "static_initial_baseline_ssim": 0.5205292767240994,
+          "static_initial_baseline_mae": 18.98280698810564
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7999426814589906,
+          "candidate_mae": 9.594889638082066,
+          "static_initial_baseline_ssim": 0.22205099575213386,
+          "static_initial_baseline_mae": 56.12582123098202
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.8212019117557686,
+          "candidate_mae": 3.3890103843332016,
+          "static_initial_baseline_ssim": 0.5724162805431338,
+          "static_initial_baseline_mae": 11.33881473747578
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7283655401330519,
+          "candidate_mae": 7.708692913562959,
+          "static_initial_baseline_ssim": 0.5099597805434465,
+          "static_initial_baseline_mae": 13.652429679745124
+        }
+      }
+    },
+    {
+      "time_s": 4.0,
+      "frame": 240,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-004.000.png",
+      "sha256": "3e0439a8548a51af4b397e08ca3433ca782dfd685b91d9dd19445334538450c3",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7854176008638492,
+          "candidate_mae": 8.979344300851654,
+          "static_initial_baseline_ssim": 0.7840807755436372,
+          "static_initial_baseline_mae": 9.095612786360336
+        },
+        "dashboard": {
+          "candidate_ssim": 0.8011303656869967,
+          "candidate_mae": 7.175218571172328,
+          "static_initial_baseline_ssim": 0.7995701367239344,
+          "static_initial_baseline_mae": 7.311086134303861
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7974166067852536,
+          "candidate_mae": 13.730775991240202,
+          "static_initial_baseline_ssim": 0.7914756706244802,
+          "static_initial_baseline_mae": 14.072856154910097
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7754427560724251,
+          "candidate_mae": 7.100508869951277,
+          "static_initial_baseline_ssim": 0.770803059977478,
+          "static_initial_baseline_mae": 7.476527080158775
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.8004694567462608,
+          "candidate_mae": 6.533004755035529,
+          "static_initial_baseline_ssim": 0.8019151813446187,
+          "static_initial_baseline_mae": 6.525984680405935
+        }
+      }
+    },
+    {
+      "time_s": 5.0,
+      "frame": 300,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-005.000.png",
+      "sha256": "c6c54ecc432e97cb370bfc1ad3c803b3dd0417302a61d2105627d879f0a2c1f0",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7842900656612835,
+          "candidate_mae": 8.596949891067538,
+          "static_initial_baseline_ssim": 0.7823200072975007,
+          "static_initial_baseline_mae": 8.805783323430383
+        },
+        "dashboard": {
+          "candidate_ssim": 0.8012783271380807,
+          "candidate_mae": 6.737781133734891,
+          "static_initial_baseline_ssim": 0.7989713318602227,
+          "static_initial_baseline_mae": 6.9818170771928
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.8056351105694876,
+          "candidate_mae": 11.089067542646381,
+          "static_initial_baseline_ssim": 0.8037311088117516,
+          "static_initial_baseline_mae": 12.03859785615491
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7693409802621143,
+          "candidate_mae": 7.173628355625787,
+          "static_initial_baseline_ssim": 0.7649618927678246,
+          "static_initial_baseline_mae": 7.5453032996594995
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.80735810167391,
+          "candidate_mae": 6.444815155375215,
+          "static_initial_baseline_ssim": 0.8043464854116357,
+          "static_initial_baseline_mae": 6.460685894894312
+        }
+      }
+    },
+    {
+      "time_s": 6.0,
+      "frame": 360,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-006.000.png",
+      "sha256": "feeff9eba8d07a85360c20e5db01d710d6311f19d1568656b15cb00a47caf1e9",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7638065041438983,
+          "candidate_mae": 9.475427683699742,
+          "static_initial_baseline_ssim": 0.5715131078874859,
+          "static_initial_baseline_mae": 18.62074214365881
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7790730713330632,
+          "candidate_mae": 7.764050900611594,
+          "static_initial_baseline_ssim": 0.5553197182002639,
+          "static_initial_baseline_mae": 18.451103319118733
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.8252835450391585,
+          "candidate_mae": 10.111445366528354,
+          "static_initial_baseline_ssim": 0.24141466348993587,
+          "static_initial_baseline_mae": 52.178642231443064
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7764830802236986,
+          "candidate_mae": 6.904008409052429,
+          "static_initial_baseline_ssim": 0.5329419316778377,
+          "static_initial_baseline_mae": 14.933725802810542
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7779580409468116,
+          "candidate_mae": 7.338847599845904,
+          "static_initial_baseline_ssim": 0.6017020879795231,
+          "static_initial_baseline_mae": 11.220457478846981
+        }
+      }
+    },
+    {
+      "time_s": 7.0,
+      "frame": 420,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-007.000.png",
+      "sha256": "f0d4356c8737625ad24b15ed70a6859e71d736b290449b1fa4c588b65ce5708a",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7993712999015754,
+          "candidate_mae": 8.218628895160759,
+          "static_initial_baseline_ssim": 0.4490363830697672,
+          "static_initial_baseline_mae": 33.56740031029247
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7932058333180739,
+          "candidate_mae": 8.554830119136478,
+          "static_initial_baseline_ssim": 0.5041186410156088,
+          "static_initial_baseline_mae": 25.917938651561002
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7811497292905671,
+          "candidate_mae": 10.6608964384509,
+          "static_initial_baseline_ssim": 0.15744895118139313,
+          "static_initial_baseline_mae": 65.12006396957123
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.8127462210342401,
+          "candidate_mae": 6.439653996651429,
+          "static_initial_baseline_ssim": 0.5266799995677046,
+          "static_initial_baseline_mae": 19.38093995146453
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7643524632640784,
+          "candidate_mae": 9.770367777112279,
+          "static_initial_baseline_ssim": 0.6025467001228164,
+          "static_initial_baseline_mae": 13.051165841354468
+        }
+      }
+    },
+    {
+      "time_s": 8.5,
+      "frame": 510,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-008.500.png",
+      "sha256": "5f42d08e563ab35c7a5786fb35e19c5ea07704215ba4cc1a372a21d6e065100b",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7623692166449046,
+          "candidate_mae": 9.538168449197862,
+          "static_initial_baseline_ssim": 0.56072533080386,
+          "static_initial_baseline_mae": 19.99298664752096
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7791743196431353,
+          "candidate_mae": 7.814061170997587,
+          "static_initial_baseline_ssim": 0.5433392075415626,
+          "static_initial_baseline_mae": 20.031221009063014
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.8139499205834149,
+          "candidate_mae": 10.867940295066852,
+          "static_initial_baseline_ssim": 0.16034880007729022,
+          "static_initial_baseline_mae": 60.522602581834946
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7971890384302821,
+          "candidate_mae": 6.240841986944335,
+          "static_initial_baseline_ssim": 0.5327940668508278,
+          "static_initial_baseline_mae": 14.406030720319055
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7560993963703259,
+          "candidate_mae": 8.183938468546748,
+          "static_initial_baseline_ssim": 0.6347820657621212,
+          "static_initial_baseline_mae": 11.20776988552484
+        }
+      }
+    },
+    {
+      "time_s": 9.0,
+      "frame": 540,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-009.000.png",
+      "sha256": "9ad7c4d431352428d9976d458883d9d76c67d5a791e6667573eb8f78a34ae58e",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7250313503246103,
+          "candidate_mae": 10.527970679012345,
+          "static_initial_baseline_ssim": 0.5436472048409696,
+          "static_initial_baseline_mae": 20.635544579784774
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7340034865020031,
+          "candidate_mae": 9.000194076542824,
+          "static_initial_baseline_ssim": 0.5228424638413919,
+          "static_initial_baseline_mae": 20.8115755447162
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7516938377343577,
+          "candidate_mae": 11.454013946519133,
+          "static_initial_baseline_ssim": 0.1425775237680875,
+          "static_initial_baseline_mae": 62.758942773167355
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.7280603004553692,
+          "candidate_mae": 7.8037488007223885,
+          "static_initial_baseline_ssim": 0.5121851587523388,
+          "static_initial_baseline_mae": 14.834387992174126
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.684349179324049,
+          "candidate_mae": 10.754833067602489,
+          "static_initial_baseline_ssim": 0.5844997683118646,
+          "static_initial_baseline_mae": 12.2161537639579
+        }
+      }
+    },
+    {
+      "time_s": 10.5,
+      "frame": 630,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-010.500.png",
+      "sha256": "8ff1240b1c5324c0113cb14d3aa50eb5aa85ff78c3c7ca3be54b82bb4d6b06c4",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7476619377471484,
+          "candidate_mae": 8.388684434211395,
+          "static_initial_baseline_ssim": 0.6036784326587485,
+          "static_initial_baseline_mae": 16.054603015448603
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7583792832248512,
+          "candidate_mae": 6.499290475446545,
+          "static_initial_baseline_ssim": 0.5905668769355031,
+          "static_initial_baseline_mae": 15.45756425982823
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.897982981107447,
+          "candidate_mae": 7.218320654679576,
+          "static_initial_baseline_ssim": 0.30934726902107107,
+          "static_initial_baseline_mae": 48.37109122867681
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.6739771486612435,
+          "candidate_mae": 7.37334687811577,
+          "static_initial_baseline_ssim": 0.5131413727067882,
+          "static_initial_baseline_mae": 12.611168331546175
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.6868721918314348,
+          "candidate_mae": 8.24324214125633,
+          "static_initial_baseline_ssim": 0.6174801979820065,
+          "static_initial_baseline_mae": 10.205985692713913
+        }
+      }
+    },
+    {
+      "time_s": 11.0,
+      "frame": 660,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-011.000.png",
+      "sha256": "e939dc948272f8b61f7464e8cb9fdddd40c678f9503937abe5f3277414e55f9a",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7341283332224808,
+          "candidate_mae": 10.021383153429722,
+          "static_initial_baseline_ssim": 0.5911144071754597,
+          "static_initial_baseline_mae": 17.07305097544068
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7443462728074112,
+          "candidate_mae": 8.406813364424154,
+          "static_initial_baseline_ssim": 0.5771261536002769,
+          "static_initial_baseline_mae": 16.647299997492677
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7657749871750238,
+          "candidate_mae": 13.142155082987552,
+          "static_initial_baseline_ssim": 0.2701554708008949,
+          "static_initial_baseline_mae": 48.69323420931305
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.6783697996468495,
+          "candidate_mae": 9.176394924469026,
+          "static_initial_baseline_ssim": 0.5534862027425306,
+          "static_initial_baseline_mae": 13.226692862652143
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7125911435183537,
+          "candidate_mae": 9.051932102254353,
+          "static_initial_baseline_ssim": 0.567276508408371,
+          "static_initial_baseline_mae": 12.438241480444178
+        }
+      }
+    },
+    {
+      "time_s": 12.0,
+      "frame": 720,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-012.000.png",
+      "sha256": "1b4b352fe8759e76f2d1926decf37dfbbdf5c9fbe28eab8a9e782eb285b1cccf",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7307248743469731,
+          "candidate_mae": 10.028174927378359,
+          "static_initial_baseline_ssim": 0.5924580088282206,
+          "static_initial_baseline_mae": 16.99935919654057
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7398290990169035,
+          "candidate_mae": 8.418016041089258,
+          "static_initial_baseline_ssim": 0.5781725784589321,
+          "static_initial_baseline_mae": 16.564445225572392
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.750256241494398,
+          "candidate_mae": 13.684939776394652,
+          "static_initial_baseline_ssim": 0.2732757890649205,
+          "static_initial_baseline_mae": 48.80048121254034
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.6641690170206028,
+          "candidate_mae": 9.380491986003724,
+          "static_initial_baseline_ssim": 0.5447746898457169,
+          "static_initial_baseline_mae": 13.422940534642663
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7157038194523158,
+          "candidate_mae": 8.874319152585745,
+          "static_initial_baseline_ssim": 0.5693828365551434,
+          "static_initial_baseline_mae": 12.293102527114389
+        }
+      }
+    },
+    {
+      "time_s": 14.0,
+      "frame": 840,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-014.000.png",
+      "sha256": "34994413f9c936d36735830469b04004e86fac222163c471fa5690a0b99ff165",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7150298723432066,
+          "candidate_mae": 10.247969276094276,
+          "static_initial_baseline_ssim": 0.574338391894308,
+          "static_initial_baseline_mae": 17.416139540833168
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7215847563357606,
+          "candidate_mae": 8.671770518109632,
+          "static_initial_baseline_ssim": 0.5570909166849277,
+          "static_initial_baseline_mae": 17.04840413631358
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7526101818935845,
+          "candidate_mae": 13.126154045643153,
+          "static_initial_baseline_ssim": 0.2402901566423382,
+          "static_initial_baseline_mae": 50.046948478561546
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.6517170731808049,
+          "candidate_mae": 9.555425437853904,
+          "static_initial_baseline_ssim": 0.5365063019297801,
+          "static_initial_baseline_mae": 13.579913040615535
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7202295968109662,
+          "candidate_mae": 8.842348498269235,
+          "static_initial_baseline_ssim": 0.5793638964980407,
+          "static_initial_baseline_mae": 12.079431026677128
+        }
+      }
+    },
+    {
+      "time_s": 15.133,
+      "frame": 908,
+      "candidate": "/mnt/zer0models/workspace/zer0/data/operations/company-os-recovery/motion-analysis/browser/browser-015.133.png",
+      "sha256": "693ee0c98678a73894e414d92a20abd93891c3c99b8f14558091293a067ac40d",
+      "regions": {
+        "full_frame": {
+          "candidate_ssim": 0.7068055354933535,
+          "candidate_mae": 10.40731539248696,
+          "static_initial_baseline_ssim": 0.5676974781924787,
+          "static_initial_baseline_mae": 17.580512230144585
+        },
+        "dashboard": {
+          "candidate_ssim": 0.7119686305160945,
+          "candidate_mae": 8.865922521751038,
+          "static_initial_baseline_ssim": 0.5493271033426932,
+          "static_initial_baseline_mae": 17.248418939170385
+        },
+        "ring_initial_coordinates": {
+          "candidate_ssim": 0.7126100599442887,
+          "candidate_mae": 13.96492623328723,
+          "static_initial_baseline_ssim": 0.22470062128310322,
+          "static_initial_baseline_mae": 50.618499308437066
+        },
+        "metrics_initial_coordinates": {
+          "candidate_ssim": 0.650970143212397,
+          "candidate_mae": 9.550549551329082,
+          "static_initial_baseline_ssim": 0.5351922542163411,
+          "static_initial_baseline_mae": 13.601714026374701
+        },
+        "lanes_initial_coordinates": {
+          "candidate_ssim": 0.7227422078203894,
+          "candidate_mae": 8.798976022360758,
+          "static_initial_baseline_ssim": 0.5773094412826062,
+          "static_initial_baseline_mae": 12.162168926081835
+        }
+      }
+    }
+  ]
+}
