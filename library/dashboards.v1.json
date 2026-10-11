@@ -1,0 +1,256 @@
+{
+  "schema": "companyos.dashboard_catalog.v1",
+  "version": "2026-10-10",
+  "status": "recipes-only-not-live",
+  "parent_issue": "https://github.com/kvnloo/company-os/issues/5",
+  "scenes": [
+    {
+      "id": "factory-glance",
+      "label": "Factory glance",
+      "phase": "P0",
+      "readiness": "draft-pr3-data",
+      "question": "What changed and what is blocked?",
+      "regions": {
+        "header": [
+          "source-health",
+          "metrics-strip"
+        ],
+        "center": [
+          "factory-lanes",
+          "live-control-path"
+        ],
+        "left": [
+          "disk-security"
+        ],
+        "right": [
+          "capacity-offers"
+        ],
+        "overlay": [
+          "attention-queue",
+          "evidence-drawer"
+        ]
+      },
+      "example_voice_request": "Which workers are stalled?",
+      "truth_rule": "Activity is not verified outcome.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "fleet-economics",
+      "label": "Fleet and provider capacity",
+      "phase": "P0",
+      "readiness": "draft-pr3-data",
+      "question": "What capacity is eligible now?",
+      "regions": {
+        "header": [
+          "source-health",
+          "disk-security"
+        ],
+        "center": [
+          "capacity-offers",
+          "provider-quotas"
+        ],
+        "left": [],
+        "right": [
+          "metrics-strip"
+        ],
+        "overlay": [
+          "evidence-drawer"
+        ]
+      },
+      "example_voice_request": "Which quota resets soon?",
+      "truth_rule": "Unknown is not free; sessions remain sticky.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "company-attention",
+      "label": "Company decisions and objectives",
+      "phase": "P1",
+      "readiness": "needs-source-join",
+      "question": "Which verified objective needs human judgment?",
+      "regions": {
+        "header": [
+          "north-star-rings",
+          "receipt-outcomes"
+        ],
+        "center": [
+          "attention-queue",
+          "what-changed"
+        ],
+        "left": [
+          "voice-composer"
+        ],
+        "right": [
+          "evidence-drawer"
+        ],
+        "overlay": []
+      },
+      "example_voice_request": "What needs my decision now?",
+      "truth_rule": "No percentage without denominator/proof.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "z0-intelligence",
+      "label": "z0intelligence decisions",
+      "phase": "P1",
+      "readiness": "needs-source-join",
+      "question": "Is routing improving actual outcomes?",
+      "regions": {
+        "header": [
+          "receipt-outcomes",
+          "source-health"
+        ],
+        "center": [
+          "live-control-path",
+          "cognition-shadow",
+          "provider-fallback"
+        ],
+        "left": [],
+        "right": [
+          "memory-coverage",
+          "reuse-readiness"
+        ],
+        "overlay": [
+          "evidence-drawer"
+        ]
+      },
+      "example_voice_request": "Did the shadow model improve outcomes?",
+      "truth_rule": "Draft receipts and shadow must not be treated as deployed.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "latency-investigation",
+      "label": "Latency and fallback diagnosis",
+      "phase": "P2",
+      "readiness": "needs-source-join",
+      "question": "Where is time actually lost?",
+      "regions": {
+        "header": [
+          "what-changed",
+          "source-health"
+        ],
+        "center": [
+          "latency-waterfall",
+          "provider-fallback"
+        ],
+        "left": [],
+        "right": [
+          "live-control-path",
+          "evidence-drawer"
+        ],
+        "overlay": [
+          "investigation-branch"
+        ]
+      },
+      "example_voice_request": "Compare slow and fast traces.",
+      "truth_rule": "Wall versus summed time and missing coverage stay distinct.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "continuity-reuse",
+      "label": "Memory and architecture reuse",
+      "phase": "P2",
+      "readiness": "needs-source-join",
+      "question": "Did the agent actually use fresh evidence?",
+      "regions": {
+        "header": [
+          "memory-coverage",
+          "source-health"
+        ],
+        "center": [
+          "reuse-readiness",
+          "continuation-state"
+        ],
+        "left": [],
+        "right": [
+          "evidence-drawer"
+        ],
+        "overlay": [
+          "what-changed"
+        ]
+      },
+      "example_voice_request": "Did Hermes see the right State Packet?",
+      "truth_rule": "Capture, retrieval, injection, use, verified impact are separate.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "review-evidence",
+      "label": "OSS review and evidence",
+      "phase": "P2",
+      "readiness": "needs-source-join",
+      "question": "Which PR needs review and what evidence supports it?",
+      "regions": {
+        "header": [
+          "receipt-outcomes",
+          "attention-queue"
+        ],
+        "center": [
+          "dependency-lens",
+          "factory-lanes"
+        ],
+        "left": [],
+        "right": [
+          "evidence-drawer",
+          "what-changed"
+        ],
+        "overlay": []
+      },
+      "example_voice_request": "Which review blocks the most work?",
+      "truth_rule": "Green tests are not deployment or verified acceptance.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "revops-meeting",
+      "label": "RevOps meeting",
+      "phase": "P3",
+      "readiness": "fixture-only",
+      "question": "Why did a KPI change?",
+      "regions": {
+        "header": [
+          "north-star-rings",
+          "source-health"
+        ],
+        "center": [
+          "revops-funnel",
+          "investigation-branch"
+        ],
+        "left": [
+          "voice-composer"
+        ],
+        "right": [
+          "evidence-drawer",
+          "attention-queue"
+        ],
+        "overlay": []
+      },
+      "example_voice_request": "Compare conversion by cohort.",
+      "truth_rule": "Requires explicitly authorized real BI/CRM source; none verified.",
+      "persistence": "view definition only; source data stays canonical"
+    },
+    {
+      "id": "ephemeral-investigation",
+      "label": "Ephemeral voice and pointing",
+      "phase": "P3",
+      "readiness": "needs-source-join",
+      "question": "How can a question change the view safely?",
+      "regions": {
+        "header": [
+          "source-health"
+        ],
+        "center": [
+          "investigation-branch",
+          "evidence-drawer"
+        ],
+        "left": [
+          "voice-composer"
+        ],
+        "right": [
+          "what-changed"
+        ],
+        "overlay": []
+      },
+      "example_voice_request": "Redesign this widget, then restore.",
+      "truth_rule": "Host-approved declarative views; preview and discard by default.",
+      "persistence": "view definition only; source data stays canonical"
+    }
+  ]
+}
