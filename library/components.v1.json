@@ -1,0 +1,522 @@
+{
+  "schema": "companyos.component_catalog.v1",
+  "version": "2026-10-10",
+  "status": "declarative-library-scaffold-not-rendered",
+  "ownership": "kvnloo/company-os",
+  "parent_issue": "https://github.com/kvnloo/company-os/issues/5",
+  "design_language": {
+    "theme": "void-paper + dotted ring hub + tracked type; minimal dark/optional light",
+    "principles": [
+      "motion only for state transitions",
+      "semantic zoom ambient/focus/evidence",
+      "conserve focus and user approval authority",
+      "null/unknown distinct from zero",
+      "no decorative percentages",
+      "no secrets or raw private transcripts in browser"
+    ]
+  },
+  "availability_levels": {
+    "pr3_draft_projection": "field available in unmerged draft CompanyOS PR #3; not production validated",
+    "needs_adapter": "authoritative source exists or is proposed, but no verified CompanyOS adapter",
+    "fixture_only": "no authorized live source; synthetic test fixture only"
+  },
+  "components": [
+    {
+      "id": "factory-lanes",
+      "label": "Factory lane matrix",
+      "phase": "P0",
+      "availability": "pr3_draft_projection",
+      "source_contract": "company_os.snapshot.v1",
+      "source_path": "$.fleet",
+      "question": "Which workers are actually progressing?",
+      "visual_ref": "north-star-video / hud-dark-cockpit",
+      "allowed_interactions": [
+        "filter",
+        "focus",
+        "open-source"
+      ],
+      "truth_guard": "heartbeat is not work completion; active, stale, and unknown distinct",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "source-health",
+      "label": "Source freshness strip",
+      "phase": "P0",
+      "availability": "pr3_draft_projection",
+      "source_contract": "company_os.snapshot.v1",
+      "source_path": "$.sources",
+      "question": "Which claims are grounded or missing?",
+      "visual_ref": "hud-real-nodes",
+      "allowed_interactions": [
+        "focus",
+        "show-reason"
+      ],
+      "truth_guard": "optional/missing source never becomes healthy/zero",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "capacity-offers",
+      "label": "Fleet & capacity offers",
+      "phase": "P0",
+      "availability": "pr3_draft_projection",
+      "source_contract": "z0.capacity.snapshot.v1 (optional via company_os.snapshot.v1)",
+      "source_path": "$.capacity_plane.hosts|offers|sessions|leases",
+      "question": "Where can eligible work run?",
+      "visual_ref": "map-v3-canonical",
+      "allowed_interactions": [
+        "filter",
+        "focus",
+        "open-evidence"
+      ],
+      "truth_guard": "no placement authority; sessions sticky, unknown quota not zero",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "disk-security",
+      "label": "Host disk/security condition",
+      "phase": "P0",
+      "availability": "pr3_draft_projection",
+      "source_contract": "company_os.snapshot.v1",
+      "source_path": "$.disks|security",
+      "question": "What physical risk blocks the factory?",
+      "visual_ref": "hud-dark-cockpit",
+      "allowed_interactions": [
+        "focus",
+        "inspect-source"
+      ],
+      "truth_guard": "status derives only from current metadata; no content/credentials",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "live-control-path",
+      "label": "Execution trace path",
+      "phase": "P0",
+      "availability": "pr3_draft_projection",
+      "source_contract": "company_os.snapshot.v1",
+      "source_path": "$.flow|control",
+      "question": "Where did an intent stop?",
+      "visual_ref": "hud-real-nodes",
+      "allowed_interactions": [
+        "select-trace",
+        "focus",
+        "evidence"
+      ],
+      "truth_guard": "trace ids may be incomplete; control.available does not prove admission or success",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "metrics-strip",
+      "label": "Observed metric strip",
+      "phase": "P0",
+      "availability": "pr3_draft_projection",
+      "source_contract": "company_os.snapshot.v1",
+      "source_path": "$.economics",
+      "question": "What was measured?",
+      "visual_ref": "north-star-video",
+      "allowed_interactions": [
+        "switch-window",
+        "focus"
+      ],
+      "truth_guard": "raw row sums are provisional; block verified/savings claims pending canonical receipts #150",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "north-star-rings",
+      "label": "Objective progress rings",
+      "phase": "P1",
+      "availability": "needs_adapter",
+      "source_contract": "source-authoritative objectives + independent verifier",
+      "source_path": null,
+      "question": "Which verified objective is at risk?",
+      "visual_ref": "north-star-video / hud-canonical-v3",
+      "allowed_interactions": [
+        "focus",
+        "semantic-zoom",
+        "switch-horizon"
+      ],
+      "truth_guard": "no synthetic percentages; declare denominator, horizon, proof and unknown coverage",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "attention-queue",
+      "label": "Human attention queue",
+      "phase": "P1",
+      "availability": "needs_adapter",
+      "source_contract": "Hermes/AODL typed approval & source events",
+      "source_path": null,
+      "question": "Which decision needs a person now?",
+      "visual_ref": "hud-canonical-v3",
+      "allowed_interactions": [
+        "focus",
+        "open-authoritative-approval"
+      ],
+      "truth_guard": "preparation is not approval; never mutate from a generated widget",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "receipt-outcomes",
+      "label": "Canonical outcome & accounting",
+      "phase": "P1",
+      "availability": "needs_adapter",
+      "source_contract": "z0intelligence receipt canonical join #54 / PRs #149 #150",
+      "source_path": null,
+      "question": "Which outcomes truly improved?",
+      "visual_ref": "north-star-video",
+      "allowed_interactions": [
+        "compare",
+        "inspect-lineage"
+      ],
+      "truth_guard": "latest negative wins over stale positive; count each trace once; estimated != measured",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "what-changed",
+      "label": "Meaningful delta ribbon",
+      "phase": "P1",
+      "availability": "needs_adapter",
+      "source_contract": "z0 EventLog / canonical source change receipts",
+      "source_path": null,
+      "question": "What changed since I was away?",
+      "visual_ref": "hud-dark-cockpit",
+      "allowed_interactions": [
+        "filter",
+        "focus",
+        "open-source"
+      ],
+      "truth_guard": "dedup/replay idempotence and freshness; no focus theft",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "evidence-drawer",
+      "label": "Evidence & provenance lens",
+      "phase": "P1",
+      "availability": "needs_adapter",
+      "source_contract": "z0 State Packet #22 / outcomes #54",
+      "source_path": null,
+      "question": "Why do we believe this?",
+      "visual_ref": "map-v3-canonical",
+      "allowed_interactions": [
+        "expand",
+        "navigate-source",
+        "compare-revisions"
+      ],
+      "truth_guard": "show observed/provisional/contradicted/stale/verified separately, redact private data",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "provider-quotas",
+      "label": "Quota & reset window",
+      "phase": "P1",
+      "availability": "pr3_draft_projection",
+      "source_contract": "company_os.snapshot.v1 + z0.capacity.snapshot.v1",
+      "source_path": "$.capacity|capacity_plane.offers",
+      "question": "Which free eligible capacity expires soon?",
+      "visual_ref": "north-star-video",
+      "allowed_interactions": [
+        "filter",
+        "focus"
+      ],
+      "truth_guard": "minute/day buckets never collapse; unknown not free; no paid spill assertion from estimates",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "memory-coverage",
+      "label": "Memory and indexing coverage",
+      "phase": "P1",
+      "availability": "needs_adapter",
+      "source_contract": "CompanyOS AgentsView metadata + ctx coverage audit #144",
+      "source_path": null,
+      "question": "Can our agents actually recover relevant history?",
+      "visual_ref": "hud-real-nodes",
+      "allowed_interactions": [
+        "focus",
+        "inspect-gap"
+      ],
+      "truth_guard": "AgentView-readable is not ctx-indexed/model-visible/used; OMP omissions explicit",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "reuse-readiness",
+      "label": "Architecture reuse evidence",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "z0intelligence reuse packet #140 / issue #137",
+      "source_path": null,
+      "question": "Should we reuse or write new code?",
+      "visual_ref": "map-v3-canonical",
+      "allowed_interactions": [
+        "inspect-proof",
+        "open-source"
+      ],
+      "truth_guard": "draft contract not enforced; REUSE/EXTEND/NOVEL/OBSERVE without authority",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "cognition-shadow",
+      "label": "Local cognition candidates",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "z0intelligence #20 shadow rows/receipts",
+      "source_path": null,
+      "question": "Which local model was tested and with what confidence?",
+      "visual_ref": "north-star-video",
+      "allowed_interactions": [
+        "compare",
+        "inspect-sample"
+      ],
+      "truth_guard": "timeouts carry waited time and uncertainty; shadow does not imply active routing",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "latency-waterfall",
+      "label": "End-to-end latency waterfall",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "z0intelligence #139 / PR #148 neutral trace accounting",
+      "source_path": null,
+      "question": "What actually dominates UX latency?",
+      "visual_ref": "north-star-video",
+      "allowed_interactions": [
+        "expand-stage",
+        "compare-cases"
+      ],
+      "truth_guard": "wall vs sum separated; unknown coverage, 402/429/approvals represented",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "provider-fallback",
+      "label": "Free-only fallback trace",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "z0intelligence #139 / PR #141",
+      "source_path": null,
+      "question": "Why did the route fail over?",
+      "visual_ref": "map-v3-canonical",
+      "allowed_interactions": [
+        "inspect-decision",
+        "open-receipt"
+      ],
+      "truth_guard": "draft not deployed; blocking opt-in context paths cannot be labeled 0ms",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "continuation-state",
+      "label": "Checkpoint/recovery state",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "z0intelligence #130 / PR #132",
+      "source_path": null,
+      "question": "What can safely resume after an interruption?",
+      "visual_ref": "hud-real-nodes",
+      "allowed_interactions": [
+        "focus",
+        "inspect-proof"
+      ],
+      "truth_guard": "checkpoint created != live host recovery; started->unknown; no replay authority",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "dependency-lens",
+      "label": "Dependency and reviewer graph",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "GitHub issues/PRs + canonical workstream identity",
+      "source_path": null,
+      "question": "Which blocker has largest fan-out?",
+      "visual_ref": "map-v3-canonical",
+      "allowed_interactions": [
+        "filter",
+        "focus",
+        "open-source"
+      ],
+      "truth_guard": "PR/issue status not verified objective; human authorship retained",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "voice-composer",
+      "label": "Voice-and-point intent composer",
+      "phase": "P2",
+      "availability": "needs_adapter",
+      "source_contract": "Hermes host voice / z0live #1 / Ripple/AODL",
+      "source_path": null,
+      "question": "Can we explore by asking a question?",
+      "visual_ref": "landing-talk-to-company / grok-voice-tailscale",
+      "allowed_interactions": [
+        "talk",
+        "type",
+        "select",
+        "cancel"
+      ],
+      "truth_guard": "capture scope and consent; never auto-send or infer approval",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "investigation-branch",
+      "label": "Ephemeral comparison workspace",
+      "phase": "P3",
+      "availability": "needs_adapter",
+      "source_contract": "CompanyOS session-local view recipes",
+      "source_path": null,
+      "question": "Can I inspect a hypothesis without altering live state?",
+      "visual_ref": "north-star-video / hud-light",
+      "allowed_interactions": [
+        "fork",
+        "compare",
+        "pin",
+        "discard",
+        "back"
+      ],
+      "truth_guard": "hypothetical != observed; last good view always restorable",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    },
+    {
+      "id": "revops-funnel",
+      "label": "Revenue/cohort funnel",
+      "phase": "P3",
+      "availability": "fixture_only",
+      "source_contract": "authorized RevOps BI/CRM source (not connected)",
+      "source_path": null,
+      "question": "Why did conversion or retention change?",
+      "visual_ref": "hud-light / landing-talk-to-company",
+      "allowed_interactions": [
+        "cohort-split",
+        "compare-window",
+        "inspect-source"
+      ],
+      "truth_guard": "no fabricated business metrics; source access/consent required",
+      "default_detail": "glance",
+      "detail_levels": [
+        "glance",
+        "focus",
+        "evidence"
+      ],
+      "mutation_authority": "none"
+    }
+  ]
+}
