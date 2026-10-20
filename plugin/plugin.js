@@ -16,7 +16,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 const ID = 'company-os'
 
 const CSS = [
-  '.cos{position:absolute;inset:0;background:#0a0a0a;color:#e8e8e8;font-family:ui-sans-serif,system-ui,sans-serif;overflow:hidden;letter-spacing:.04em}',
+  '.cos{position:absolute;inset:0;background:#0a0a0a;color:#e8e8e8;font-family:ui-sans-serif,system-ui,sans-serif;overflow-x:hidden;overflow-y:auto;display:flex;flex-direction:column;min-height:100%;letter-spacing:.04em}',
   '.cos *{box-sizing:border-box}',
   '.cos-top{display:grid;grid-template-columns:1fr 1fr 1fr;padding:28px 40px 0;align-items:start}',
   '.cos-brand{font-family:ui-monospace,Menlo,monospace;font-size:26px;letter-spacing:.14em}',
@@ -24,11 +24,11 @@ const CSS = [
   '.cos-status{color:#7dff9a;font-size:12px;margin-top:12px;display:flex;align-items:center;gap:8px}',
   '.cos-dot{width:7px;height:7px;border-radius:50%;background:#7dff9a}',
   '.cos-clock{text-align:center;font-family:ui-monospace,Menlo,monospace;font-size:18px;letter-spacing:.18em}',
-  '.cos-meta{text-align:right;font-size:12px;color:#aaa;letter-spacing:.12em}',
-  '.cos-body{display:grid;grid-template-columns:200px 1fr 260px;gap:8px;padding:8px 36px;height:calc(100% - 150px)}',
+  '.cos-meta{text-align:right;font-size:12px;color:#aaa;letter-spacing:.12em;overflow-wrap:anywhere;min-width:0}',
+  '.cos-body{display:grid;grid-template-columns:200px minmax(0,1fr) 260px;gap:8px;padding:8px 36px;flex:1;min-height:360px}',
   '.cos-rail .box{border:1px solid #1c1c1c;padding:14px 12px;margin-bottom:10px;min-height:88px}',
   '.cos-k{font-size:10px;letter-spacing:.28em;color:#9a9a9a;text-transform:uppercase;margin-bottom:8px}',
-  '.cos-muted{color:#666;font-size:11px;line-height:1.45}',
+  '.cos-muted{color:#666;font-size:11px;line-height:1.45;overflow-wrap:anywhere}',
   '.cos-stage{position:relative}',
   '.cos-hub{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center}',
   '.cos-ring{width:210px;height:210px;border-radius:50%;border:1px dashed #2a2a2a;margin:0 auto;display:flex;align-items:center;justify-content:center}',
@@ -40,9 +40,12 @@ const CSS = [
   '.cos-sat.bot{left:50%;bottom:10%;transform:translateX(-50%)}',
   '.cos-sat.left{left:8%;top:48%}',
   '.cos-lane{border:1px solid #1c1c1c;padding:14px;margin-bottom:10px}',
-  '.cos-bottom{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:16px;padding:0 36px 20px;align-items:end}',
+  '.cos-bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:16px;padding:0 36px 20px;align-items:end;flex:0 0 auto}',
   '.cos-prompt{border:1px solid #2a2a2a;border-radius:28px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;color:#777;font-size:13px}',
-  '.cos-stat{display:flex;justify-content:space-between;font-size:11px;color:#888;margin:4px 0;letter-spacing:.12em}'
+  '.cos-stat{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#888;margin:4px 0;letter-spacing:.12em;overflow-wrap:anywhere}',
+  '@media (max-width:1000px){.cos-top{padding:20px 24px 0}.cos-body{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);padding:14px 24px;gap:14px;flex:0 0 auto;min-height:0}.cos-stage{min-height:330px}.cos-body>div:last-child{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.cos-lane{margin-bottom:0}.cos-bottom{padding:0 24px 24px;gap:12px}}',
+  '@media (max-width:640px){.cos-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:18px 16px 0}.cos-top>div:nth-child(2){display:none}.cos-brand{font-size:22px}.cos-meta{font-size:11px}.cos-body{display:flex;flex-direction:column;gap:16px;padding:20px 16px 16px}.cos-stage{order:0;min-height:280px}.cos-rail{order:1;display:grid;grid-template-columns:1fr;gap:10px}.cos-rail .box{margin:0;min-height:0;padding:12px}.cos-ring{width:170px;height:170px}.cos-core{width:62px;height:62px}.cos-sat.top{top:2%}.cos-sat.bot{bottom:2%}.cos-sat.left{left:4%}.cos-body>div:last-child{order:2;display:grid;grid-template-columns:1fr;gap:10px}.cos-lane{padding:12px;margin:0}.cos-bottom{grid-template-columns:minmax(0,1fr);gap:14px;padding:0 16px 24px}.cos-bottom>div:first-child{order:2}.cos-bottom>div:nth-child(2){order:0}.cos-bottom>div:last-child{order:1}}',
+  '@media (max-width:360px){.cos-top{gap:8px}.cos-brand{font-size:20px}.cos-meta{font-size:10px}.cos-ring{width:154px;height:154px}.cos-stage{min-height:260px}.cos-sat{letter-spacing:.12em}.cos-hubname{letter-spacing:.2em}}'
 ].join('\n')
 
 function str(v) {
