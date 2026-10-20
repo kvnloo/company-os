@@ -12,7 +12,7 @@ It is a cockpit that **reads** live Hermes `host.state`. Hermes remains the runt
 ## What it is
 
 - Hermes Desktop plugin (`plugin/plugin.js`) — full page at `/company-os`
-- Optional static `web/index.html` for the same look without Desktop (demo numbers only)
+- Optional static `web/index.html` for the same look without Desktop (demo numbers only); responsive on mobile browsers
 - [docs/](docs/README.md) — inspo frames + architecture stills
 - Blind theme jury (labels-hidden, sealed map): v1/v2 lose vs inspo; v3 win 8–5 and 8–6 on two independent critics. Theme freeze = void paper + rings + tracked type. Not “perfect”: left slabs still sparse.
 
@@ -21,6 +21,8 @@ It is a cockpit that **reads** live Hermes `host.state`. Hermes remains the runt
 - A control plane, issue tracker, or worker dispatcher
 - A Linear client (no Linear tokens)
 - A place for secrets, health data, or credentials
+
+The HUD reflows to two columns on smaller windows and one scrollable column on phones. The Desktop plugin still requires a compatible Hermes Desktop host; opening the static preview on a phone does not connect to Hermes.
 
 ## Install (Desktop)
 
