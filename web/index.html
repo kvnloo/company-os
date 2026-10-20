@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>zer0 company OS</title>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400&family=IBM+Plex+Mono:wght@400&display=swap");
 html,body{margin:0;background:#050505}
-.art{width:1536px;min-height:1600px;margin:0 auto;padding:28px 40px 40px;box-sizing:border-box;
+.art{width:100%;max-width:1536px;min-height:100vh;margin:0 auto;padding:28px 40px 40px;box-sizing:border-box;
   background:#0a0a0a;color:#dedede;font-family:"IBM Plex Sans",system-ui,sans-serif;position:relative}
 .pix{font-family:"IBM Plex Mono",ui-monospace,monospace}
 .k{font-size:10px;letter-spacing:.32em;color:#7a7a7a;text-transform:uppercase}
-.m{font-size:11px;color:#5c5c5c;letter-spacing:.04em;line-height:1.45}
+.m{font-size:11px;color:#5c5c5c;letter-spacing:.04em;line-height:1.45;overflow-wrap:anywhere}
 h1{margin:0;font-size:28px;letter-spacing:.22em;font-weight:400}
 .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
 .brand .s{margin-top:6px;letter-spacing:.28em;font-size:11px;color:#7a7a7a}
@@ -21,8 +22,8 @@ h1{margin:0;font-size:28px;letter-spacing:.22em;font-weight:400}
 .clk .d{margin-top:4px;font-size:11px;color:#5a5a5a}
 .meta{text-align:right;font-size:12px;color:#6a6a6a;letter-spacing:.14em}
 .grid{display:grid;gap:10px}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.plate{position:relative;border:1px solid #1c1c1c;background:#0c0c0c;padding:14px 16px;text-align:center}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.plate{position:relative;min-width:0;border:1px solid #1c1c1c;background:#0c0c0c;padding:14px 16px;text-align:center}
 .plate .t{letter-spacing:.14em;font-size:14px;margin:2px 0 6px}
 .br{position:absolute;width:9px;height:9px;border:1px solid #5a5a5a;pointer-events:none}
 .tl{top:-1px;left:-1px;border-right:0;border-bottom:0}
@@ -41,11 +42,34 @@ h1{margin:0;font-size:28px;letter-spacing:.22em;font-weight:400}
 .dash{border-style:dashed;border-color:#333;background:transparent}
 .forbid{border-style:dashed;border-color:#4a2020;color:#c98}
 .arr{text-align:center;color:#3a3a3a;font-size:12px;letter-spacing:.4em;height:14px}
-.foot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.foot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
 .foot .plate{text-align:left}
 .foot li{margin:0 0 4px;color:#8a8a8a;font-size:11px;list-style:none}
 .foot ul{margin:8px 0 0;padding:0}
 .ref{margin-top:16px;font-size:10px;color:#444;letter-spacing:.12em;text-align:center}
+@media (max-width:800px){
+  .art{padding:22px 20px 32px}
+  .foot{grid-template-columns:minmax(0,1fr)}
+  .foot .plate{text-align:left}
+}
+@media (max-width:600px){
+  .art{padding:18px 12px 28px}
+  .head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+  .head .clk{display:none}
+  .meta{text-align:right;max-width:145px;font-size:10px;letter-spacing:.04em;overflow-wrap:anywhere;color:#a0a0a0}
+  h1{font-size:24px}
+  .row2{grid-template-columns:minmax(0,1fr)}
+  .grid{gap:8px}
+  .plate{padding:14px 12px}
+  .k{letter-spacing:.2em;color:#aaa}
+  .m{font-size:12px;line-height:1.5;color:#a0a0a0}
+  .arr{height:auto;min-height:18px;line-height:1.5;letter-spacing:.1em;color:#888}
+  .ref{line-height:1.5;overflow-wrap:anywhere;color:#888}
+}
+@media (max-width:360px){
+  .head{grid-template-columns:minmax(0,1fr)}
+  .meta{text-align:left;max-width:none}
+}
 </style>
 </head>
 <body>
