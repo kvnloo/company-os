@@ -23,9 +23,25 @@ import time
 from pathlib import Path
 from typing import Any
 
+import importlib.util
+import threading
+
 from fastapi import APIRouter
 
 router = APIRouter()
+
+
+def _load_live_hosts():
+    # Sibling module loaded by path: Hermes and the owned launcher both import
+    # this file by location, so a package-relative import would not resolve.
+    spec = importlib.util.spec_from_file_location("company_os_live_hosts", Path(__file__).with_name("live_hosts.py"))
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
+live_hosts = _load_live_hosts()
 
 SCHEMA = "company_os.snapshot.v1"
 CAPACITY_SCHEMA = "z0.capacity.snapshot.v1"
@@ -127,8 +143,11 @@ def _run_json(argv: list[str], timeout: float = 2.0) -> tuple[Any, str | None]:
 def _k8s() -> tuple[dict[str, Any], dict[str, Any]]:
     if not shutil.which("kubectl"):
         return {"available": False, "ready": None, "pods": [], "nodes": []}, _source("unavailable", reason="kubectl_missing")
-    pods_raw, pods_err = _run_json(["kubectl", "get", "pods", "-A", "-o", "json", "--request-timeout=2s"])
-    nodes_raw, nodes_err = _run_json(["kubectl", "get", "nodes", "-o", "json", "--request-timeout=2s"])
+    # The fleet's k3s cluster when its kubeconfig exists; else the current context.
+    cfg = live_hosts.kubeconfig()
+    kubectl = ["kubectl"] + (["--kubeconfig", cfg] if cfg else [])
+    pods_raw, pods_err = _run_json(kubectl + ["get", "pods", "-A", "-o", "json", "--request-timeout=2s"], timeout=3.0)
+    nodes_raw, nodes_err = _run_json(kubectl + ["get", "nodes", "-o", "json", "--request-timeout=2s"], timeout=3.0)
     def items(raw):
         return raw.get("items", []) if isinstance(raw, dict) and isinstance(raw.get("items"), list) else []
     def ready(status):
@@ -157,7 +176,7 @@ def _k8s() -> tuple[dict[str, Any], dict[str, Any]]:
     truncated = len(items(pods_raw)) > MAX_ROWS or len(items(nodes_raw)) > MAX_ROWS
     ok = not pods_err and not nodes_err and health and not truncated
     data = {"available": not pods_err and not nodes_err, "ready": health if not pods_err and not nodes_err and not truncated else None,
-            "pods": pods, "nodes": nodes, "coverage": {"scope": "current_kube_context", "limit_per_kind": MAX_ROWS, "truncated": truncated}}
+            "pods": pods, "nodes": nodes, "coverage": {"scope": "k3s_fleet" if cfg else "current_kube_context", "limit_per_kind": MAX_ROWS, "truncated": truncated}}
     return data, _source("ok" if ok else "degraded", observed_at=_now(),
                          reason=None if ok else "workloads_unready_or_inventory_incomplete", coverage=data["coverage"],
                          source_version="sha256:" + hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest())
@@ -463,6 +482,17 @@ def _z0_live():
         name = SOURCE_NAMES[kind]
         try:
             raw, status = _get_readonly(origin, path)
+            for _ in range(2):
+                # The shared service answers 503 with an empty body while its
+                # admission slots are full; retry briefly, then report overload.
+                if status != 503 or raw:
+                    break
+                time.sleep(0.15)
+                raw, status = _get_readonly(origin, path)
+            if status == 503 and not raw:
+                sources[name] = _source("unavailable", reason="service_overloaded", http_status=503,
+                                        endpoint=path, coverage=SOURCE_SCOPES[kind])
+                continue
             if status != 200 and not (status == 503 and kind in ("health", "readiness")):
                 raise ValueError("unexpected_http_status")
             value = _safe_live(kind, raw)
@@ -480,8 +510,9 @@ def _z0_live():
                 assessed_at=value.get("as_of") if isinstance(value, dict) else None,
                 source_version="sha256:" + hashlib.sha256(raw).hexdigest(),
                 coverage=coverage, endpoint=path)
-        except Exception:
-            sources[name] = _source("unavailable", reason="read_failed", endpoint=path, coverage=SOURCE_SCOPES[kind])
+        except Exception as exc:
+            reason = "timeout" if isinstance(exc, TimeoutError) else "read_failed"
+            sources[name] = _source("unavailable", reason=reason, endpoint=path, coverage=SOURCE_SCOPES[kind])
     return data, sources
 
 
@@ -558,13 +589,41 @@ def _host_metadata():
     return data, _source(status, observed_at=_now(), coverage="disk_and_permission_metadata_only")
 
 
-def build_snapshot() -> dict[str, Any]:
+_LIVE_CACHE: dict[str, tuple[float, Any]] = {}
+_LIVE_LOCK = threading.Lock()
+LIVE_TTL_S = 4.0
+
+
+def _live(local: bool, service: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Host map + shadow network + declared world, shared by concurrent pollers for a few seconds."""
+    key = "local" if local else "public"
+    with _LIVE_LOCK:
+        hit = _LIVE_CACHE.get(key)
+        if hit and time.monotonic() - hit[0] < LIVE_TTL_S:
+            return hit[1]
+        try:
+            data, sources = live_hosts.build(local=local, z0_service=service)
+        except Exception:
+            data, sources = {"hosts": []}, {"live_hosts": _source("unavailable", reason="source_failed")}
+        try:
+            world, world_src = live_hosts.z0archy_world()
+        except Exception:
+            world, world_src = None, _source("unavailable", reason="source_failed")
+        data["world"] = world
+        sources["z0archy"] = world_src
+        _LIVE_CACHE[key] = (time.monotonic(), (data, sources))
+        return data, sources
+
+
+def build_snapshot(view: str = "public") -> dict[str, Any]:
     capacity_plane, capacity_source = _collect(_z0_capacity, None)
     k8s, k8s_source = _collect(_k8s, {"available": False, "pods": [], "nodes": []})
     fleet, process_source = _collect(lambda: (_process_fleet(), _source("ok", observed_at=_now(), coverage="process_presence_only")), [])
     service, service_sources = _z0_live()
     cluster, cluster_source = _collect(_cluster_live, None)
     host_meta, host_source = _collect(_host_metadata, {"security": {"status": "unknown"}, "disks": {}})
+    local = view == "local"
+    live, live_sources = _live(local, service)
     process_source["source_version"] = "sha256:" + hashlib.sha256(json.dumps(fleet, sort_keys=True).encode()).hexdigest() if process_source.get("status") == "ok" else None
     sources = {
         **service_sources,
@@ -574,6 +633,7 @@ def build_snapshot() -> dict[str, Any]:
         "z0": _source("unavailable", reason="control_episode_read_contract_missing"),
         "tokenomics": _source("unavailable", reason="tokenomics_read_contract_missing"),
         "memory": _source("unavailable", reason="archive_runtime_not_qualified"),
+        **{"live." + k: v for k, v in live_sources.items()},
     }
     return {
         "schema": SCHEMA, "generated_at": _now(), "status": "degraded",
@@ -583,7 +643,7 @@ def build_snapshot() -> dict[str, Any]:
         "z0_service": service,
         "hermes_cluster": cluster,
         "economics": _economics([]), "memory": {"runtime_usable": None}, "k8s": k8s,
-        **host_meta, "flow": [],
+        **host_meta, "flow": [], "live": live, "view": "local" if local else "public",
         "control": {"available": False, "schema": None, "stages": [],
                     "reason": "control_episode_read_contract_missing"},
         "coverage": {"scope": "local_partial", "fleet_limit": 100,
@@ -597,8 +657,10 @@ def build_snapshot() -> dict[str, Any]:
 
 
 @router.get("/snapshot")
-def snapshot():
-    return build_snapshot()
+def snapshot(view: str = "public"):
+    # view=local keeps real host/service names for the owner's loopback view;
+    # every other value gets the aliased public projection.
+    return build_snapshot("local" if view == "local" else "public")
 
 
 @router.get("/health")
